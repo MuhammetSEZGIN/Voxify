@@ -1,0 +1,4 @@
+{
+    "key": "ctrl+alt+n",
+    "command": "csdevkit.addNewProjectFromNewFileMenu"
+}
