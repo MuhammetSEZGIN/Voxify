@@ -1,7 +1,9 @@
 using System.Text;
 using IdentityService.Data;
+using IdentityService.Interfaces;
 using IdentityService.Messaging;
 using IdentityService.Messaging.RabbitMQ;
+using IdentityService.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -9,21 +11,25 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-builder.Services.AddOpenApi();
-
+builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<IdentityDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("SQLiteConnection")));
 
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<IdentityDbContext>()
     .AddDefaultTokenProviders();
+    
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
 
 builder.Services.Configure<RabbitMqOptions>(builder.Configuration.GetSection("RabbitMq"));
 builder.Services.AddSingleton<RabbitMqManager>();
+builder.Services.AddSingleton<IMessagePublisher, RabbitMqPublisher>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddAuthentication(options=>
 {
     options.DefaultAuthenticateScheme = "JwtBearer"; 
-    //bir kullanıcının kimliğini doğrulamak için yapılan bir isteği ifade eder
     options.DefaultChallengeScheme = "JwtBearer";
 })
 .AddJwtBearer("JwtBearer", jwtBearerOptions =>
@@ -46,14 +52,13 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
+{    
+    app.UseDeveloperExceptionPage();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
 
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();

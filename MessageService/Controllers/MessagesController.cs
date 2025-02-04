@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using MessageService.Data;
 using MessageService.Models;
+using MessageService.Interfaces;
 
 namespace MyProject.MessageService.Controllers
 {
@@ -12,21 +13,29 @@ namespace MyProject.MessageService.Controllers
     public class MessagesController : ControllerBase
     {
         private readonly ApplicationDbContext _db;
-
-        public MessagesController(ApplicationDbContext db)
+        private readonly IMessageService _messageService;
+        private readonly ILogger<MessagesController> _logger;
+        public MessagesController(ApplicationDbContext db,
+                                IMessageService messageService,
+                                ILogger<MessagesController> logger)
         {
             _db = db;
+            _messageService = messageService;
+            _logger = logger;
         }
+        
 
         // Bir kanaldaki son X mesajı çekmek
         [HttpGet("channel/{channelId}")]
         public async Task<IActionResult> GetChannelMessages(int channelId, [FromQuery] int limit = 50)
         {
-            var messages = await _db.Messages
-                .Where(m => m.ChannelId == channelId)
-                .OrderByDescending(m => m.CreatedAt)
-                .Take(limit)
-                .ToListAsync();
+            var messages = await _messageService.GetMessagesInChannelAsync(channelId, limit);
+            if (messages == null)
+            {
+                _logger.LogWarning("Channel not found with id: {0}", channelId);
+                return NotFound();
+            }
+            _logger.LogInformation("Messages in channel {0} fetched successfully", channelId);
             return Ok(messages);
         }
 

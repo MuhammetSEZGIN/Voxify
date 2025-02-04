@@ -76,9 +76,13 @@
               "target": "Package",
               "version": "[9.0.1, )"
             },
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[13.0.3, )"
+            },
             "RabbitMQ.Client": {
               "target": "Package",
-              "version": "[7.1.0-alpha.0, )"
+              "version": "[7.0.0, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",

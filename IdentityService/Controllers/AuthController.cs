@@ -1,10 +1,6 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+using IdentityService.Interfaces;
 using IdentityService.Models;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 
 namespace IdentityService.Controllers
 {
@@ -12,69 +8,41 @@ namespace IdentityService.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly SignInManager<IdentityUser> _signInManager;
-        
-        private readonly IConfiguration _config;
-
-        public AuthController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IConfiguration config)
+        private readonly IAuthService _authService;           
+        public AuthController(IAuthService authService )
         {
-            _userManager = userManager;
-            _signInManager = signInManager;
-            _config = config;
+            _authService = authService;
         }
 
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterModel model)
         {
-            var user = new IdentityUser
-            {
-                UserName = model.UserName,
-                Email = model.Email
-            };
-
-            var result = await _userManager.CreateAsync(user, model.Password!);
+           var result= await _authService.RegisterAsync(model);
 
             if (result.Succeeded)
             {
-                return Ok(new { Username = user.UserName, Email = user.Email });
-            }
 
+                // we will detirmine return models later
+                return Ok(
+                    new{
+                        UserName=model.UserName,
+                        Email=model.Email
+                    }
+                );
+            }
             return BadRequest(result.Errors);
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
-            var user= await _userManager.FindByNameAsync(model.UserName!);
-            if (user == null)
-            {
+            var token = await _authService.LoginAsync(model);
+            if(String.IsNullOrEmpty(token)){
                 return BadRequest("Invalid login attempt");
             }
-            var checkedPassword = await _userManager.CheckPasswordAsync(user, model.Password!);
-            if(!checkedPassword)
-                return Unauthorized("Invalid Password");  
-            var token= GenerateJSONWebToken(user);
-            return Ok(new {Token=token});
+            return Ok(token);
 
         }
-
-        public string GenerateJSONWebToken(IdentityUser user)
-        {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_config["JWT:Key"]!);  //config dosyasından okuyoruz
-            var claims=new[]
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-                new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName ?? "Avel")
-            };
-            var creds = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256);
-               var token = new JwtSecurityToken(
-                claims: claims,
-                expires: DateTime.Now.AddHours(2),
-                signingCredentials: creds
-            );
-            return tokenHandler.WriteToken(token);
-        }
+     
     }
 }

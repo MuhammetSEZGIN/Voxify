@@ -1,6 +1,6 @@
 using System;
 
-namespace IdentityService.Messaging.Abstractions;
+namespace IdentityService.Interfaces;
 
 public interface IMessageConsumer
 {

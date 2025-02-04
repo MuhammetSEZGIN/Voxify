@@ -1,18 +1,22 @@
-using System.Threading.Tasks;
 using IdentityService.Messaging.RabbitMQ;
 using RabbitMQ.Client;
-namespace IdentityService.Messaging;
 
-public class RabbitMqManager : IDisposable
+
+namespace IdentityService.Messaging;
+using System;
+using Microsoft.Extensions.Options;
+
+public class RabbitMqManager 
 { 
     private readonly RabbitMqOptions _rabbitMqOptions;
-    public RabbitMqManager(RabbitMqOptions rabbitMqOptions){
-        _rabbitMqOptions = rabbitMqOptions;
+    public RabbitMqManager(IOptions<RabbitMqOptions> rabbitMqOptions){
+        _rabbitMqOptions = rabbitMqOptions.Value;
        
     }
+    public RabbitMqOptions RabbitMqOptions => _rabbitMqOptions;
     public async Task<IChannel> CreateChannel(){
         var factory = new ConnectionFactory()
-        {
+        { 
             HostName = _rabbitMqOptions.HostName,
             Port = _rabbitMqOptions.Port,
             UserName = _rabbitMqOptions.UserName,
@@ -22,8 +26,5 @@ public class RabbitMqManager : IDisposable
         var _channel = await _connection.CreateChannelAsync();
         return _channel;
     }
-     public void Dispose()
-    {
-        
-    }
+
 }

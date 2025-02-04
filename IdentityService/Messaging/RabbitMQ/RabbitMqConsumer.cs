@@ -1,5 +1,5 @@
 using System;
-using IdentityService.Messaging.Abstractions;
+using IdentityService.Interfaces;
 using RabbitMQ.Client;
 
 namespace IdentityService.Messaging.RabbitMQ;
