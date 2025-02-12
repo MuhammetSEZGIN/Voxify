@@ -2,25 +2,32 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using MyProject.MessageService.Hubs;
 using MessageService.Data;
+using MessageService.RabbitMq;
+using MessageService.Interfaces;
+using MessageService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Örnek appsettings.json veya environment'tan JWT key okuma
-var jwtKey = builder.Configuration["Jwt:Key"] ?? "dev-secret-key";
+var jwtKey = builder.Configuration["Jwt:Key"];
+
+builder.Services.AddRabbitMQServices(builder.Configuration);  
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    // SQLite örneği
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")
-        ?? "Data Source=messages.db");
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+builder.Services.AddScoped<IRabbitMqService, RabbitMqService>();
+builder.Services.AddScoped<IMessageService, MessageService.Services.MessageService>();
+/*
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+        options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
@@ -28,12 +35,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = false
         };
 
-        // SignalR üzerinden token gönderilebilmesi için
         options.Events = new JwtBearerEvents
         {
             OnMessageReceived = context =>
             {
-                // WebSocket veya SignalR token'ını query string'den veya header'dan alabilmek için
                 var accessToken = context.Request.Query["access_token"];
                 if (!string.IsNullOrEmpty(accessToken) &&
                     (context.HttpContext.WebSockets.IsWebSocketRequest || context.Request.Headers["Accept"] == "text/event-stream"))
@@ -44,17 +49,22 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             }
         };
     });
-
+*/
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
 
 var app = builder.Build();
 
-// DB migrate
-using (var scope = app.Services.CreateScope())
+if (app.Environment.IsDevelopment())
 {
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    db.Database.Migrate();
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+using(var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<ApplicationDbContext>();
+    DbInitializer.Seed(context);
 }
 
 app.UseRouting();
@@ -63,6 +73,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapHub<MessageHub>("/messagehub");
 
 app.Run();

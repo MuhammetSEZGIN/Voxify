@@ -2,7 +2,6 @@ using System.Text;
 using IdentityService.Data;
 using IdentityService.Interfaces;
 using IdentityService.Messaging;
-using IdentityService.Messaging.RabbitMQ;
 using IdentityService.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -23,9 +22,9 @@ builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 
-builder.Services.Configure<RabbitMqOptions>(builder.Configuration.GetSection("RabbitMq"));
-builder.Services.AddSingleton<RabbitMqManager>();
-builder.Services.AddSingleton<IMessagePublisher, RabbitMqPublisher>();
+builder.Services.AddScoped<IdentityProducer>();
+builder.Services.AddRabbitMQProducer(builder.Configuration);
+
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddAuthentication(options=>
 {

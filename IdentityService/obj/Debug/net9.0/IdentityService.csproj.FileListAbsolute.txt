@@ -400,3 +400,6 @@ c:\Users\Sezgin\Desktop\Github_Projects\sesver\IdentityService\obj\Debug\net9.0\
 c:\Users\Sezgin\Desktop\Github_Projects\sesver\IdentityService\obj\Debug\net9.0\Identity.B9CE61DD.Up2Date
 c:\Users\Sezgin\Desktop\Github_Projects\sesver\IdentityService\obj\Debug\net9.0\IdentityService.genruntimeconfig.cache
 c:\Users\Sezgin\Desktop\Github_Projects\sesver\IdentityService\obj\Debug\net9.0\ref\IdentityService.dll
+C:\Users\Sezgin\Desktop\Github_Projects\sesver\IdentityService\bin\Debug\net9.0\MassTransit.dll
+C:\Users\Sezgin\Desktop\Github_Projects\sesver\IdentityService\bin\Debug\net9.0\MassTransit.Abstractions.dll
+C:\Users\Sezgin\Desktop\Github_Projects\sesver\IdentityService\bin\Debug\net9.0\MassTransit.RabbitMqTransport.dll

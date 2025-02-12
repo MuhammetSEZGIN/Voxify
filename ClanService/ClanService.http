@@ -1,0 +1,6 @@
+@ClanService_HostAddress = http://localhost:5074
+
+GET {{ClanService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

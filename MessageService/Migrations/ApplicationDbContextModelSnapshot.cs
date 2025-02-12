@@ -17,66 +17,14 @@ namespace MessageService.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.1");
 
-            modelBuilder.Entity("MessageService.Models.Channel", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("ClanId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClanId");
-
-                    b.ToTable("Channels");
-                });
-
-            modelBuilder.Entity("MessageService.Models.Clan", b =>
-                {
-                    b.Property<int>("ClanId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("ClanId");
-
-                    b.ToTable("Clans");
-                });
-
-            modelBuilder.Entity("MessageService.Models.ClanMemberShip", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("ClanId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClanId");
-
-                    b.ToTable("ClanMemberShips");
-                });
-
             modelBuilder.Entity("MessageService.Models.Message", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("TEXT");
 
-                    b.Property<int>("ChannelId")
-                        .HasColumnType("INTEGER");
+                    b.Property<Guid>("ChannelId")
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
@@ -85,6 +33,7 @@ namespace MessageService.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("SenderId")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Text")
@@ -92,52 +41,44 @@ namespace MessageService.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ChannelId");
+                    b.HasIndex("SenderId");
 
                     b.ToTable("Messages");
                 });
 
-            modelBuilder.Entity("MessageService.Models.Channel", b =>
+            modelBuilder.Entity("MessageService.Models.User", b =>
                 {
-                    b.HasOne("MessageService.Models.Clan", "Clan")
-                        .WithMany("Channels")
-                        .HasForeignKey("ClanId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT");
 
-                    b.Navigation("Clan");
-                });
+                    b.Property<string>("AvatarUrl")
+                        .HasColumnType("TEXT");
 
-            modelBuilder.Entity("MessageService.Models.ClanMemberShip", b =>
-                {
-                    b.HasOne("MessageService.Models.Clan", "Clan")
-                        .WithMany()
-                        .HasForeignKey("ClanId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Property<string>("Email")
+                        .HasColumnType("TEXT");
 
-                    b.Navigation("Clan");
+                    b.Property<string>("UserName")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("MessageService.Models.Message", b =>
                 {
-                    b.HasOne("MessageService.Models.Channel", "Channel")
+                    b.HasOne("MessageService.Models.User", "User")
                         .WithMany("Messages")
-                        .HasForeignKey("ChannelId")
+                        .HasForeignKey("SenderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Channel");
+                    b.Navigation("User");
                 });
 
-            modelBuilder.Entity("MessageService.Models.Channel", b =>
+            modelBuilder.Entity("MessageService.Models.User", b =>
                 {
                     b.Navigation("Messages");
-                });
-
-            modelBuilder.Entity("MessageService.Models.Clan", b =>
-                {
-                    b.Navigation("Channels");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,127 +1,78 @@
-using MessageService.Data;
-using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
+using System;
+using MessageService.DTOs;
+using MessageService.Interfaces;
 using MessageService.Models;
-using System.Security.Claims;
+using Microsoft.AspNetCore.SignalR;
 
-namespace MyProject.MessageService.Hubs
+namespace MessageService.Hubs;
+
+public class MessageHub: Hub
 {
-    public class MessageHub : Hub
+    private readonly IMessageService _messageService;
+    private readonly ILogger<MessageHub> _logger;
+
+    public MessageHub(IMessageService messageService, ILogger<MessageHub> logger)
     {
-        private readonly ApplicationDbContext _db;
-
-        public MessageHub(ApplicationDbContext db)
+        _messageService = messageService;
+        _logger = logger;
+    }
+    public async Task SendMessage(Guid channelId, string senderId, string userName, string message)   
+    {
+      
+        var messageDto = new MessageDto
         {
-            _db = db;
-        }
+            Id = Guid.NewGuid(),
+            UserName = userName,
+            ChannelId = channelId,
+            SenderId = senderId,
+            Text = message,
+            CreatedAt = DateTime.UtcNow
+        };
 
-        // Kullanıcı belirtilen channel'a katılır (SignalR Group'a dahil)
-        public async Task JoinChannel(int channelId)
+        await Clients.Group(channelId.ToString()).SendAsync("ReceiveMessage", messageDto);
+          var newMessage = new Message
         {
-            // Token'daki userId
-            var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-                throw new Exception("Kullanıcı kimliği bulunamadı.");
-
-            // Kanalı DB'den çek
-            var channel = await _db.Channels
-                                   .Include(c => c.Clan)
-                                   .FirstOrDefaultAsync(c => c.Id == channelId);
-
-            if (channel == null)
-                throw new Exception("Kanal bulunamadı.");
-
-            // Kullanıcı bu klanın üyesi mi?
-            bool isMember = await _db.ClanMemberShips
-                .AnyAsync(cm => cm.ClanId == channel.ClanId && cm.UserId == userId);
-            if (!isMember)
-                throw new Exception("Bu kanala girme yetkiniz yok.");
-
-            // SignalR grubu: "channel_1" gibi
-            await Groups.AddToGroupAsync(Context.ConnectionId, $"channel_{channelId}");
-        }
-
-        // Kanal mesajı gönderme
-        public async Task SendChannelMessage(int channelId, string text)
+            Id = messageDto.Id,    
+            ChannelId = channelId,
+            SenderId = senderId,
+            Text = message,
+            CreatedAt = DateTime.UtcNow 
+        };
+        _ = Task.Run(async () =>
         {
-            var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-                throw new Exception("Kullanıcı kimliği bulunamadı.");
+            try{
+            await _messageService.CreateMessage(newMessage);
 
-            // Kanalı bul
-            var channel = await _db.Channels
-                                   .Include(c => c.Clan)
-                                   .FirstOrDefaultAsync(c => c.Id == channelId);
-            if (channel == null)
-                throw new Exception("Kanal yok.");
-
-            // Klan üyesi mi kontrol
-            bool isMember = await _db.ClanMemberShips
-                .AnyAsync(cm => cm.ClanId == channel.ClanId && cm.UserId == userId);
-            if (!isMember)
-                throw new Exception("Yetkisiz erişim.");
-
-            // Mesajı DB'ye kaydet
-            var message = new Message
-            {
-                SenderId = userId,
-                ChannelId = channelId,
-                Text = text,
-                CreatedAt = DateTime.UtcNow
-            };
-            _db.Messages.Add(message);
-            await _db.SaveChangesAsync();
-
-            // Kanal grubundaki herkese mesajı yolla
-            await Clients.Group($"channel_{channelId}")
-                .SendAsync("ReceiveChannelMessage", new
-                {
-                    message.Id,
-                    message.SenderId,
-                    message.Text,
-                    message.CreatedAt,
-                    ChannelId = channelId
-                });
-        }
-
-        // Birebir mesaj
-        public async Task SendDirectMessage(string recipientId, string text)
+            }catch(Exception e){
+                _logger.LogError(e, "Error saving message to database");
+            }
+        }); 
+    }
+ 
+    public async Task UpdateMessage(Guid messageId, string newContent)
+    {
+        var updatedMessage = await _messageService.UpdateMessage(messageId, newContent);
+        if(updatedMessage == null)
+            return;
+        var messageDto = new MessageDto
         {
-            var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-                throw new Exception("Kullanıcı kimliği bulunamadı.");
+            Id = updatedMessage.Id,
+            UserName = updatedMessage.User.UserName,
+            ChannelId = updatedMessage.ChannelId,
+            SenderId = updatedMessage.SenderId,
+            Text = updatedMessage.Text,
+            CreatedAt = updatedMessage.CreatedAt
+        };
+        await Clients.Group(updatedMessage.ChannelId.ToString()).SendAsync("MessageUpdated", messageDto);
+    }
+    
+    public async Task JoinChannel(Guid channelId)
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, channelId.ToString());
+    }
 
-            var message = new Message
-            {
-                SenderId = userId,
-                RecipientId = recipientId,
-                Text = text,
-                CreatedAt = DateTime.UtcNow
-            };
-            _db.Messages.Add(message);
-            await _db.SaveChangesAsync();
-
-            // Sadece alıcıya gönder
-            await Clients.User(recipientId)
-                .SendAsync("ReceiveDirectMessage", new
-                {
-                    message.Id,
-                    message.SenderId,
-                    message.RecipientId,
-                    message.Text,
-                    message.CreatedAt
-                });
-
-            // İsteğe bağlı: Gönderene de göster
-            await Clients.User(userId)
-                .SendAsync("ReceiveDirectMessage", new
-                {
-                    message.Id,
-                    message.SenderId,
-                    message.RecipientId,
-                    message.Text,
-                    message.CreatedAt
-                });
-        }
+    public async Task LeaveChannel(Guid channelId)
+    {
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, channelId.ToString());
     }
 }

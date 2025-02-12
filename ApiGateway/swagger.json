@@ -1,0 +1,25 @@
+{
+  "swaggerEndPoints": [
+    {
+      "Key": "ClanService",
+      "Config": [
+        {
+          "Name": "v1",
+          "Version": "v1",
+          "Url": "http://localhost:5074/swagger/v1/swagger.json"
+        }
+      ]
+    },
+
+    {
+      "Key": "IdentityService",
+      "Config": [
+        {
+          "Name": "v1",
+          "Version": "v1",
+          "Url": "http://localhost:5158/swagger/v1/swagger.json"
+        }
+      ]
+    }
+  ]
+}
