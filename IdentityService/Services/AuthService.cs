@@ -11,11 +11,11 @@ namespace IdentityService.Services;
 
 public class AuthService : IAuthService
 {
-    private readonly UserManager<IdentityUser> _userManager;
+    private readonly UserManager<ApplicationUser> _userManager;
     private readonly IConfiguration _config;
     private readonly ILogger<AuthService> _logger;
     private readonly IdentityProducer _messagePublisher;
-    public AuthService(UserManager<IdentityUser> userManager,
+    public AuthService(UserManager<ApplicationUser> userManager,
                         IConfiguration config,
                         IdentityProducer messagePublisher,
                         ILogger<AuthService> logger)
@@ -29,20 +29,28 @@ public class AuthService : IAuthService
 
     public async Task<IdentityResult> RegisterAsync(RegisterModel model)
     {
-        var user = new IdentityUser
+        var user = new ApplicationUser
         {
             UserName = model.UserName,
-            Email = model.Email
+            Email = model.Email,
+            FullName = model.FullName,
+            AvatarUrl = model.AvatarUrl
         };
         var result = await _userManager.CreateAsync(user, model.Password!);
         if (result.Succeeded)
         {
             await _messagePublisher.PublishUserUpdatedMessageAsync(
                user.UserName,
-                user.Email,
+                user.AvatarUrl,
                 user.Id
             );
-            _logger.LogInformation("User created with information: {0}", model.UserName);
+            _logger.LogInformation(
+                "User created. Username: {Username}, Email: {Email}, FullName: {FullName}, AvatarUrl: {AvatarUrl}",
+                model.UserName,
+                model.Email,
+                model.FullName,
+                model.AvatarUrl
+);
         }
         return result;
     }
@@ -63,7 +71,7 @@ public class AuthService : IAuthService
         _logger.LogInformation("User logged in: {0}", model.UserName);
         return GenerateJSONWebToken(user);
     }
-    public string GenerateJSONWebToken(IdentityUser user)
+    public string GenerateJSONWebToken(ApplicationUser user)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.ASCII.GetBytes(_config["JWT:Key"]!);  //config dosyasından okuyoruz

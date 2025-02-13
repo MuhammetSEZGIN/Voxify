@@ -169,3 +169,4 @@ C:\Users\Sezgin\Desktop\Github_Projects\sesver\ClanService\obj\Debug\net9.0\refi
 C:\Users\Sezgin\Desktop\Github_Projects\sesver\ClanService\obj\Debug\net9.0\ClanService.pdb
 C:\Users\Sezgin\Desktop\Github_Projects\sesver\ClanService\obj\Debug\net9.0\ClanService.genruntimeconfig.cache
 C:\Users\Sezgin\Desktop\Github_Projects\sesver\ClanService\obj\Debug\net9.0\ref\ClanService.dll
+C:\Users\Sezgin\Desktop\Github_Projects\sesver\ClanService\obj\Debug\net9.0\ClanService.sourcelink.json

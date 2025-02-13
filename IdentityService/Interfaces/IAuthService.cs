@@ -8,5 +8,5 @@ public interface IAuthService
 {
     Task<IdentityResult> RegisterAsync(RegisterModel model);
     Task<string> LoginAsync(LoginModel model);
-    string GenerateJSONWebToken(IdentityUser user);
+    string GenerateJSONWebToken(ApplicationUser user);
 }

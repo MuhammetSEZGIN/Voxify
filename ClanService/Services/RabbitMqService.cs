@@ -20,7 +20,7 @@ public class RabbitMqService : IRabbitMqService
         {
             Id = userUpdatedMessage.userId,
             Username = userUpdatedMessage.userName,
-            Email = userUpdatedMessage.email
+            AvatarUrl = userUpdatedMessage.AvatarUrl
         };
         _context.Users.Add(user);
         try{

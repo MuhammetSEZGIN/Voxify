@@ -19,11 +19,7 @@ namespace ClanService.Models
         [Required]
         [StringLength(50)]
         public string Username { get; set; }
-
-        [Required]
-        [EmailAddress]
-        public string Email { get; set; }
-
+        public string AvatarUrl { get; set; }
         public ICollection<ClanMembership> ClanMemberships { get; set; }   
     }
 }

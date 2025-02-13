@@ -17,7 +17,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// builder.Services.AddRabbitMQServices(builder.Configuration);  
+builder.Services.AddRabbitMQServices(builder.Configuration);  
 
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
