@@ -2,6 +2,7 @@ using System.Text;
 using IdentityService.Data;
 using IdentityService.Interfaces;
 using IdentityService.Messaging;
+using IdentityService.Models;
 using IdentityService.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -14,10 +15,10 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<IdentityDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("SQLiteConnection")));
 
-builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<IdentityDbContext>()
     .AddDefaultTokenProviders();
-    
+
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
@@ -26,6 +27,7 @@ builder.Services.AddScoped<IdentityProducer>();
 builder.Services.AddRabbitMQProducer(builder.Configuration);
 
 builder.Services.AddScoped<IAuthService, AuthService>();
+
 builder.Services.AddAuthentication(options=>
 {
     options.DefaultAuthenticateScheme = "JwtBearer"; 

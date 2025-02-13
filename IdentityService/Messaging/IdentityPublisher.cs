@@ -16,16 +16,16 @@ public class IdentityProducer
         _logger = logger;
     }
 
-    public async Task PublishUserUpdatedMessageAsync(string userName, string email, string userId)
+    public async Task PublishUserUpdatedMessageAsync(string userName, string avatarUrl, string userId)
     {
         var message = new UserUpdatedMessage
         {
             userId = userId,
             userName = userName,
-            email = email
+            AvatarUrl = avatarUrl
         };
 
-        _logger.LogInformation("Publishing UserUpdatedMessage for user: {userName}, email: {email}", userName, email);
+        _logger.LogInformation("Publishing UserUpdatedMessage for user: {userName}, evatarUrl: {avatarUrl}", userName, avatarUrl);
         await _publishEndpoint.Publish(message);
     }
 }

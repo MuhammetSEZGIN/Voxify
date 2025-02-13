@@ -21,12 +21,13 @@ namespace IdentityService.Controllers
 
             if (result.Succeeded)
             {
-
                 // we will detirmine return models later
                 return Ok(
                     new{
                         UserName=model.UserName,
-                        Email=model.Email
+                        Email=model.Email,
+                        FullName=model.FullName,
+                        AvatarUrl=model.AvatarUrl
                     }
                 );
             }

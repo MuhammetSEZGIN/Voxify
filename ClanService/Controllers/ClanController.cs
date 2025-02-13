@@ -69,6 +69,8 @@ namespace ClanService.Controllers
                 return NotFound(new ErrorDto { Message = "Clan not found." });
 
             existing.Name = dto.Name;
+            existing.ImagePath = dto.ImagePath;
+            
             var updated = await _clanService.UpdateClanAsync(existing);
             var readDto = _mapper.Map<ClanReadDto>(updated);
             return Ok(readDto);
