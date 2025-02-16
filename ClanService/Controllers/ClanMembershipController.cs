@@ -3,7 +3,7 @@ using ClanService.Interfaces;
 using ClanService.Models;
 using ClanService.DTOs;
 using AutoMapper;
-
+using ClanService.DTOs.ClanDtos;
 
 namespace ClanService.Controllers
 {
@@ -31,6 +31,7 @@ namespace ClanService.Controllers
                 });
 
             var membership = _mapper.Map<ClanMembership>(dto);
+            membership.Role= ClanRole.Member;
             var created = await _clanMembershipService.AddMemberAsync(membership);
             var readDto = _mapper.Map<ClanMembershipReadDto>(created);  
 

@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using ClanService.Enums;
 
 namespace ClanService.Models
 {
@@ -26,5 +27,7 @@ namespace ClanService.Models
         [ForeignKey(nameof(User))]
         public string UserId { get; set; }
         public User User { get; set; }
+
+        public string Role { get; set; }
     }
 }

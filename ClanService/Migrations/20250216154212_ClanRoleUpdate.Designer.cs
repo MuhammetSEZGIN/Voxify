@@ -5,34 +5,39 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace ClanService.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250210103805_Initial")]
-    partial class Initial
+    [Migration("20250216154212_ClanRoleUpdate")]
+    partial class ClanRoleUpdate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.1");
+            modelBuilder
+                .HasAnnotation("ProductVersion", "9.0.1")
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            modelBuilder.Entity("MessageService.Models.Channel", b =>
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("ClanService.Models.Channel", b =>
                 {
                     b.Property<Guid>("ChannelId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("ClanId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(50)");
 
                     b.HasKey("ChannelId");
 
@@ -41,37 +46,40 @@ namespace ClanService.Migrations
                     b.ToTable("Channels");
                 });
 
-            modelBuilder.Entity("MessageService.Models.Clan", b =>
+            modelBuilder.Entity("ClanService.Models.Clan", b =>
                 {
                     b.Property<Guid>("ClanId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("ImagePath")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(50)");
 
                     b.HasKey("ClanId");
 
                     b.ToTable("Clans");
                 });
 
-            modelBuilder.Entity("MessageService.Models.ClanMembership", b =>
+            modelBuilder.Entity("ClanService.Models.ClanMembership", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("ClanId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Role")
+                        .HasColumnType("text");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -82,44 +90,43 @@ namespace ClanService.Migrations
                     b.ToTable("ClanMemberships");
                 });
 
-            modelBuilder.Entity("MessageService.Models.User", b =>
+            modelBuilder.Entity("ClanService.Models.User", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                    b.Property<string>("AvatarUrl")
+                        .HasColumnType("text");
 
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(50)");
 
                     b.HasKey("Id");
 
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("MessageService.Models.VoiceChannel", b =>
+            modelBuilder.Entity("ClanService.Models.VoiceChannel", b =>
                 {
                     b.Property<Guid>("VoiceChannelId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("ClanId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("boolean");
 
                     b.Property<int>("MaxParticipants")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(50)");
 
                     b.HasKey("VoiceChannelId");
 
@@ -128,9 +135,9 @@ namespace ClanService.Migrations
                     b.ToTable("VoiceChannels");
                 });
 
-            modelBuilder.Entity("MessageService.Models.Channel", b =>
+            modelBuilder.Entity("ClanService.Models.Channel", b =>
                 {
-                    b.HasOne("MessageService.Models.Clan", "Clan")
+                    b.HasOne("ClanService.Models.Clan", "Clan")
                         .WithMany("Channels")
                         .HasForeignKey("ClanId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -139,15 +146,15 @@ namespace ClanService.Migrations
                     b.Navigation("Clan");
                 });
 
-            modelBuilder.Entity("MessageService.Models.ClanMembership", b =>
+            modelBuilder.Entity("ClanService.Models.ClanMembership", b =>
                 {
-                    b.HasOne("MessageService.Models.Clan", "Clan")
+                    b.HasOne("ClanService.Models.Clan", "Clan")
                         .WithMany("ClanMemberShips")
                         .HasForeignKey("ClanId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("MessageService.Models.User", "User")
+                    b.HasOne("ClanService.Models.User", "User")
                         .WithMany("ClanMemberships")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -158,10 +165,10 @@ namespace ClanService.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("MessageService.Models.VoiceChannel", b =>
+            modelBuilder.Entity("ClanService.Models.VoiceChannel", b =>
                 {
-                    b.HasOne("MessageService.Models.Clan", "Clan")
-                        .WithMany()
+                    b.HasOne("ClanService.Models.Clan", "Clan")
+                        .WithMany("VoiceChannels")
                         .HasForeignKey("ClanId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -169,14 +176,16 @@ namespace ClanService.Migrations
                     b.Navigation("Clan");
                 });
 
-            modelBuilder.Entity("MessageService.Models.Clan", b =>
+            modelBuilder.Entity("ClanService.Models.Clan", b =>
                 {
                     b.Navigation("Channels");
 
                     b.Navigation("ClanMemberShips");
+
+                    b.Navigation("VoiceChannels");
                 });
 
-            modelBuilder.Entity("MessageService.Models.User", b =>
+            modelBuilder.Entity("ClanService.Models.User", b =>
                 {
                     b.Navigation("ClanMemberships");
                 });

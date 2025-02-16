@@ -8,7 +8,7 @@ public class SubmitIdentityConsumeDefinition : ConsumerDefinition<IdentityConsum
 
     public SubmitIdentityConsumeDefinition()
     {
-        EndpointName= "UserUpdatedQueue";
+        EndpointName= "ClanService-UserUpdatedQueue";
         ConcurrentMessageLimit = 1;
 
     }

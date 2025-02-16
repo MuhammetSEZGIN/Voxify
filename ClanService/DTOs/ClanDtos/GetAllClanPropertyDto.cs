@@ -10,6 +10,6 @@ public class GetAllClanPropertyDto
     public string ImagePath { get; set; }
     public List<ChannelReadDto> Channels { get; set; }
     public List<VoiceChannelReadDto> VoiceChannels { get; set; }
-    public List<ClanMembershipReadDto> ClanMemberships { get; set; }
+    public List<UserMembershipDto> ClanMemberships { get; set; }
 
 }

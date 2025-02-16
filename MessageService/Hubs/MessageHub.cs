@@ -10,9 +10,11 @@ public class MessageHub: Hub
 {
     private readonly IMessageService _messageService;
     private readonly ILogger<MessageHub> _logger;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
 
-    public MessageHub(IMessageService messageService, ILogger<MessageHub> logger)
+    public MessageHub(IMessageService messageService, ILogger<MessageHub> logger, IServiceScopeFactory serviceScopeFactory)
     {
+        _serviceScopeFactory = serviceScopeFactory;
         _messageService = messageService;
         _logger = logger;
     }
@@ -30,6 +32,7 @@ public class MessageHub: Hub
         };
 
         await Clients.Group(channelId.ToString()).SendAsync("ReceiveMessage", messageDto);
+        _logger.LogInformation("Message sent to channel {ChannelId} by {UserName}", channelId, userName);
           var newMessage = new Message
         {
             Id = messageDto.Id,    
@@ -38,15 +41,15 @@ public class MessageHub: Hub
             Text = message,
             CreatedAt = DateTime.UtcNow 
         };
+      
         _ = Task.Run(async () =>
         {
-            try{
-            await _messageService.CreateMessage(newMessage);
-
-            }catch(Exception e){
-                _logger.LogError(e, "Error saving message to database");
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var messageService = scope.ServiceProvider.GetRequiredService<IMessageService>();
+                await messageService.CreateMessage(newMessage);
             }
-        }); 
+        });
     }
  
     public async Task UpdateMessage(Guid messageId, string newContent)

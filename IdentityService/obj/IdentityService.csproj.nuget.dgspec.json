@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\IdentityService\\IdentityService.csproj": {}
+    "C:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\identityservice\\IdentityService.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\IdentityService\\IdentityService.csproj": {
+    "C:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\identityservice\\IdentityService.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\IdentityService\\IdentityService.csproj",
+        "projectUniqueName": "C:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\identityservice\\IdentityService.csproj",
         "projectName": "IdentityService",
-        "projectPath": "C:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\IdentityService\\IdentityService.csproj",
+        "projectPath": "C:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\identityservice\\IdentityService.csproj",
         "packagesPath": "C:\\Users\\Sezgin\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\IdentityService\\obj\\",
+        "outputPath": "C:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\identityservice\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -26,6 +26,7 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -87,6 +88,10 @@
             "Newtonsoft.Json": {
               "target": "Package",
               "version": "[13.0.3, )"
+            },
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
+              "target": "Package",
+              "version": "[9.0.3, )"
             },
             "RabbitMQ.Client": {
               "target": "Package",

@@ -7,9 +7,9 @@ namespace MessageService.RabbitMq;
 
 public class IdentityConsumer : IConsumer<UserUpdatedMessage>
 {
-    ILogger<IdentityConsumer> _logger;
+    private readonly ILogger<IdentityConsumer> _logger;
     
-    IRabbitMqService    _rabbitMqService;
+    private readonly IRabbitMqService _rabbitMqService;
     public IdentityConsumer(ILogger<IdentityConsumer> logger , IRabbitMqService rabbitMqService)
     {
         _logger = logger;

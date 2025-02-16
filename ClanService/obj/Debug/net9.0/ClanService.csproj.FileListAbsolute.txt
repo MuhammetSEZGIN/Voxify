@@ -170,3 +170,5 @@ C:\Users\Sezgin\Desktop\Github_Projects\sesver\ClanService\obj\Debug\net9.0\Clan
 C:\Users\Sezgin\Desktop\Github_Projects\sesver\ClanService\obj\Debug\net9.0\ClanService.genruntimeconfig.cache
 C:\Users\Sezgin\Desktop\Github_Projects\sesver\ClanService\obj\Debug\net9.0\ref\ClanService.dll
 C:\Users\Sezgin\Desktop\Github_Projects\sesver\ClanService\obj\Debug\net9.0\ClanService.sourcelink.json
+C:\Users\Sezgin\Desktop\Github_Projects\sesver\clanservice\bin\Debug\net9.0\Npgsql.dll
+C:\Users\Sezgin\Desktop\Github_Projects\sesver\clanservice\bin\Debug\net9.0\Npgsql.EntityFrameworkCore.PostgreSQL.dll

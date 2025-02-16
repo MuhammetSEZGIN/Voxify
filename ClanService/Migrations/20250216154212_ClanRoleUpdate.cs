@@ -5,25 +5,24 @@
 namespace ClanService.Migrations
 {
     /// <inheritdoc />
-    public partial class UpdateUserModel : Migration
+    public partial class ClanRoleUpdate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "Email",
-                table: "Users");
+            migrationBuilder.RenameColumn(
+                name: "ClanRole",
+                table: "ClanMemberships",
+                newName: "Role");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
-                name: "Email",
-                table: "Users",
-                type: "TEXT",
-                nullable: false,
-                defaultValue: "");
+            migrationBuilder.RenameColumn(
+                name: "Role",
+                table: "ClanMemberships",
+                newName: "ClanRole");
         }
     }
 }

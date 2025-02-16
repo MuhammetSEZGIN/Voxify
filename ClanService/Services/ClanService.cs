@@ -2,24 +2,48 @@ using ClanService.Data;
 using ClanService.Models;
 using ClanService.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using ClanService.DTOs.ClanDtos;
 
 namespace MessageService.Services
 {
     public class ClanService : IClanService
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<ClanService> _logger;
 
-        public ClanService(ApplicationDbContext context)
+        public ClanService(ApplicationDbContext context, ILogger<ClanService> logger)
         {
+            _logger = logger;
             _context = context;
         }
 
-        public async Task<Clan> CreateClanAsync(Clan clan)
+        public async Task<Clan> CreateClanAsync(Clan clan, string userId)
         {
-            clan.ClanId = Guid.NewGuid();
-            await _context.Clans.AddAsync(clan);
-            await _context.SaveChangesAsync();
-            return clan;
+            try
+            {
+                var user = await _context.Users.FindAsync(userId);
+                if (user == null) return null;
+
+                clan.ClanId = Guid.NewGuid();
+                await _context.Clans.AddAsync(clan);
+
+                var clanMembership = new ClanMembership
+                {
+                    ClanId = clan.ClanId,
+                    UserId = userId,
+                    Role = ClanRole.Owner
+                };
+                await _context.ClanMemberships.AddAsync(clanMembership);
+
+                await _context.SaveChangesAsync();
+                return clan;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error while creating clan");
+                return null;
+            }
+        
         }
 
         public async Task<Clan> GetClanByIdAsync(Guid clanId)
@@ -28,8 +52,8 @@ namespace MessageService.Services
             return await _context.Clans
                 .Include(c => c.Channels)
                 .Include(c => c.VoiceChannels)
-                .Include(c => c.ClanMemberShips)
-                .FirstOrDefaultAsync(x => x.ClanId == clanId);
+                .Include(c=>c.ClanMemberShips).ThenInclude(cm=>cm.User)
+                .FirstOrDefaultAsync(c => c.ClanId == clanId);
         }
 
         public async Task<List<Clan>> GetAllClansAsync()

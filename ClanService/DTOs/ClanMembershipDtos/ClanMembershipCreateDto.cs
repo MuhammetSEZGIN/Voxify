@@ -8,5 +8,7 @@ namespace ClanService.DTOs
         public Guid ClanId { get; set; }
         [Required]
         public string UserId { get; set; }
+
+        public string ClanRole { get; set; }  
     }
 }

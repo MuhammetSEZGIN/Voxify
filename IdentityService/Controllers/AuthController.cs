@@ -17,6 +17,10 @@ namespace IdentityService.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterModel model)
         {
+            if(!ModelState.IsValid){
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                return BadRequest(new {Message="Invalid data", Errors=errors});
+            }
            var result= await _authService.RegisterAsync(model);
 
             if (result.Succeeded)
@@ -37,11 +41,15 @@ namespace IdentityService.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
+            if(!ModelState.IsValid){
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                return BadRequest(new {Message="Invalid data", Errors=errors});
+            }   
             var token = await _authService.LoginAsync(model);
             if(String.IsNullOrEmpty(token)){
                 return BadRequest("Invalid login attempt");
             }
-            return Ok(token);
+            return Ok(new {Token=token});
 
         }
      

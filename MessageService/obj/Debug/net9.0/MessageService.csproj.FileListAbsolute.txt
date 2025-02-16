@@ -335,3 +335,6 @@ C:\Users\Sezgin\Desktop\Github_Projects\sesver\MessageService\obj\Debug\net9.0\r
 C:\Users\Sezgin\Desktop\Github_Projects\sesver\MessageService\bin\Debug\net9.0\Swashbuckle.AspNetCore.Swagger.dll
 C:\Users\Sezgin\Desktop\Github_Projects\sesver\MessageService\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerGen.dll
 C:\Users\Sezgin\Desktop\Github_Projects\sesver\MessageService\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerUI.dll
+C:\Users\Sezgin\Desktop\Github_Projects\sesver\messageservice\obj\Debug\net9.0\MessageService.sourcelink.json
+C:\Users\Sezgin\Desktop\Github_Projects\sesver\messageservice\bin\Debug\net9.0\Npgsql.dll
+C:\Users\Sezgin\Desktop\Github_Projects\sesver\messageservice\bin\Debug\net9.0\Npgsql.EntityFrameworkCore.PostgreSQL.dll

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\MessageService\\MessageService.csproj": {}
+    "C:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\messageservice\\MessageService.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\MessageService\\MessageService.csproj": {
+    "C:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\messageservice\\MessageService.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\MessageService\\MessageService.csproj",
+        "projectUniqueName": "C:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\messageservice\\MessageService.csproj",
         "projectName": "MessageService",
-        "projectPath": "C:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\MessageService\\MessageService.csproj",
+        "projectPath": "C:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\messageservice\\MessageService.csproj",
         "packagesPath": "C:\\Users\\Sezgin\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\MessageService\\obj\\",
+        "outputPath": "C:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\messageservice\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -26,6 +26,7 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -83,6 +84,10 @@
             "Microsoft.EntityFrameworkCore.Sqlite": {
               "target": "Package",
               "version": "[9.0.1, )"
+            },
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
+              "target": "Package",
+              "version": "[9.0.3, )"
             },
             "RabbitMQ.Client": {
               "target": "Package",

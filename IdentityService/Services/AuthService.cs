@@ -66,7 +66,7 @@ public class AuthService : IAuthService
         if (!checkedPassword)
         {
             _logger.LogWarning("Invalid password for user: {0}", model.UserName);
-            return "Invalid login attempt";
+            return "Invalid password";
         }
         _logger.LogInformation("User logged in: {0}", model.UserName);
         return GenerateJSONWebToken(user);

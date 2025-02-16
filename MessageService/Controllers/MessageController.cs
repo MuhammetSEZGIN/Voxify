@@ -1,11 +1,17 @@
 using MessageService.DTOs;
 using MessageService.Interfaces;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace MessageService.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [EnableCors("AllowAll")]
+    [EnableRateLimiting("fixed")]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+    [ProducesResponseType(typeof(MessageDto), StatusCodes.Status200OK)]
     public class MessageController : ControllerBase
     {
         private readonly IMessageService _messageService;
@@ -17,7 +23,9 @@ namespace MessageService.Controllers
         [HttpGet]
         public async Task<IActionResult> GetMessagesInChannelAsync(Guid channelId, int limit)
         {
+            
             var messages = await _messageService.GetMessagesInChannelAsync(channelId, limit);
+
             var messageDtos = messages.Select(m => new MessageDto 
             {
                 Id = m.Id,

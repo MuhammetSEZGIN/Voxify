@@ -404,3 +404,5 @@ C:\Users\Sezgin\Desktop\Github_Projects\sesver\IdentityService\bin\Debug\net9.0\
 C:\Users\Sezgin\Desktop\Github_Projects\sesver\IdentityService\bin\Debug\net9.0\MassTransit.Abstractions.dll
 C:\Users\Sezgin\Desktop\Github_Projects\sesver\IdentityService\bin\Debug\net9.0\MassTransit.RabbitMqTransport.dll
 C:\Users\Sezgin\Desktop\Github_Projects\sesver\IdentityService\obj\Debug\net9.0\IdentityService.sourcelink.json
+C:\Users\Sezgin\Desktop\Github_Projects\sesver\identityservice\bin\Debug\net9.0\Npgsql.dll
+C:\Users\Sezgin\Desktop\Github_Projects\sesver\identityservice\bin\Debug\net9.0\Npgsql.EntityFrameworkCore.PostgreSQL.dll

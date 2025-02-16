@@ -24,10 +24,13 @@ public class RabbitMqService : IRabbitMqService
                 UserName = message.userName,
                 AvatarUrl = message.avatarUrl
             });
+            _logger.LogInformation("New user added {0}", message.userName);
         }else{
             user.UserName = message.userName;
             user.AvatarUrl = message.avatarUrl;
             _context.Users.Update(user);
+            
+            _logger.LogInformation("User updated {0}", message.userName);
         }
         try{
             await _context.SaveChangesAsync();

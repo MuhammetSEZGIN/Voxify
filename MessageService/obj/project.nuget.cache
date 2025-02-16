@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "OEgdo2/9Qa0=",
+  "dgSpecHash": "ZMy/uHQ8zsk=",
   "success": true,
-  "projectFilePath": "C:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\MessageService\\MessageService.csproj",
+  "projectFilePath": "C:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\messageservice\\MessageService.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Sezgin\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\Sezgin\\.nuget\\packages\\masstransit\\8.3.7-develop.2216\\masstransit.8.3.7-develop.2216.nupkg.sha512",
@@ -74,6 +74,8 @@
     "C:\\Users\\Sezgin\\.nuget\\packages\\microsoft.openapi\\1.6.22\\microsoft.openapi.1.6.22.nupkg.sha512",
     "C:\\Users\\Sezgin\\.nuget\\packages\\mono.texttemplating\\3.0.0\\mono.texttemplating.3.0.0.nupkg.sha512",
     "C:\\Users\\Sezgin\\.nuget\\packages\\newtonsoft.json\\11.0.2\\newtonsoft.json.11.0.2.nupkg.sha512",
+    "C:\\Users\\Sezgin\\.nuget\\packages\\npgsql\\9.0.2\\npgsql.9.0.2.nupkg.sha512",
+    "C:\\Users\\Sezgin\\.nuget\\packages\\npgsql.entityframeworkcore.postgresql\\9.0.3\\npgsql.entityframeworkcore.postgresql.9.0.3.nupkg.sha512",
     "C:\\Users\\Sezgin\\.nuget\\packages\\rabbitmq.client\\7.1.0-alpha.0\\rabbitmq.client.7.1.0-alpha.0.nupkg.sha512",
     "C:\\Users\\Sezgin\\.nuget\\packages\\sqlitepclraw.bundle_e_sqlite3\\2.1.10\\sqlitepclraw.bundle_e_sqlite3.2.1.10.nupkg.sha512",
     "C:\\Users\\Sezgin\\.nuget\\packages\\sqlitepclraw.core\\2.1.10\\sqlitepclraw.core.2.1.10.nupkg.sha512",

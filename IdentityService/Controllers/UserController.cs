@@ -25,5 +25,16 @@ namespace IdentityService.Controllers
             }
             return BadRequest(result.Errors);
         }
+
+        [HttpDelete("delete")]
+        public async Task<IActionResult> DeleteUser([FromHeader]  string id)
+        {
+            var result = await _userService.DeleteUserAsync(id);
+            if (result.Succeeded)
+            {
+                return Ok(new { Message = "User deleted successfully" });
+            }
+            return BadRequest(result.Errors);
+        }
     }
 }

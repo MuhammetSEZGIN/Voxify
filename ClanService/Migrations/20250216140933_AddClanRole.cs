@@ -5,15 +5,15 @@
 namespace ClanService.Migrations
 {
     /// <inheritdoc />
-    public partial class AddingAvatarUrl : Migration
+    public partial class AddClanRole : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
-                name: "AvatarUrl",
-                table: "Users",
-                type: "TEXT",
+                name: "ClanRole",
+                table: "ClanMemberships",
+                type: "text",
                 nullable: true);
         }
 
@@ -21,8 +21,8 @@ namespace ClanService.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "AvatarUrl",
-                table: "Users");
+                name: "ClanRole",
+                table: "ClanMemberships");
         }
     }
 }

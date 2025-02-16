@@ -1,10 +1,11 @@
+using ClanService.DTOs;
 using ClanService.Models;
 
 namespace ClanService.Interfaces
 {
     public interface IClanService
     {
-        Task<Clan> CreateClanAsync(Clan clan);
+        Task<Clan> CreateClanAsync(Clan clan, string userId);
         Task<Clan> GetClanByIdAsync(Guid clanId);
         Task<List<Clan>> GetAllClansAsync();
         Task<Clan> UpdateClanAsync(Clan clan);
@@ -12,4 +13,5 @@ namespace ClanService.Interfaces
         Task<List<Clan>> GetClansByUserIdAsync(string userId);
 
     }
+
 }
