@@ -81,11 +81,9 @@ namespace ClanService.Controllers
         [HttpPost("join/{inviteCode}")]
         public async Task<IActionResult> JoinClanWithInvite(string inviteCode, [FromBody] string userId)
         {
-            var (isValid,validateMessage) = await _clanService.ValidateAndUseInvitationAsync(inviteCode);
+            var (isValid,validateMessage, invitation) = await _clanService.ValidateAndUseInvitationAsync(inviteCode);
             if (!isValid)
                 return BadRequest(new ErrorDto { Message = validateMessage });
-
-            var invitation = await _clanService.GetInvitationByCodeAsync(inviteCode);
 
             var membership = new ClanMembership
             {

@@ -78,7 +78,8 @@ public class AuthService : IAuthService
         var claims = new[]
         {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-                new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName ?? "Avel")
+                new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName ?? "Avel"),
+                new Claim(JwtRegisteredClaimNames.Picture, user.AvatarUrl ?? "")
             };
         var creds = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256);
         var token = new JwtSecurityToken(

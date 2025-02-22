@@ -30,7 +30,9 @@ namespace ClanService.Controllers
                 });
 
             var clan = _mapper.Map<Clan>(dto);
-            var created = await _clanService.CreateClanAsync(clan, dto.UserId);
+            var (created, message) = await _clanService.CreateClanAsync(clan, dto.UserId);
+            if (created == null)
+                return BadRequest(new ErrorDto { Message = message });
             var readDto = _mapper.Map<ClanReadDto>(created);
             return Ok(readDto);
         }

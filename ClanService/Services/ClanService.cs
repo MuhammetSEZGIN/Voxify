@@ -17,12 +17,13 @@ namespace MessageService.Services
             _context = context;
         }
 
-        public async Task<Clan> CreateClanAsync(Clan clan, string userId)
+        public async Task<(Clan, string)> CreateClanAsync(Clan clan, string userId)
         {
             try
             {
                 var user = await _context.Users.FindAsync(userId);
-                if (user == null) return null;
+                if (user == null) 
+                return (null, "User not found");
 
                 clan.ClanId = Guid.NewGuid();
                 await _context.Clans.AddAsync(clan);
@@ -36,12 +37,12 @@ namespace MessageService.Services
                 await _context.ClanMemberships.AddAsync(clanMembership);
 
                 await _context.SaveChangesAsync();
-                return clan;
+                return (clan, "Clan created successfully");
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error while creating clan");
-                return null;
+                return (null, "Error while creating clan");
             }
 
         }
@@ -90,12 +91,13 @@ namespace MessageService.Services
 
         public async Task<ClanInvitation> CreateInviteTokenAsync(Guid clanId, TimeSpan? expipreInHours, int? maxUses)
         {
+            
             var ClanInvitition = new ClanInvitation
             {
                 ClanId = clanId,
                 ExpiresAt = DateTime.UtcNow.Add(expipreInHours ?? TimeSpan.FromHours(24)),
                 InviteCode = GenerateInviteCode(),
-                IsActive = false,
+                IsActive = true,
                 MaxUses = maxUses ?? 10,
                 UsedCount = 0
 
@@ -116,29 +118,29 @@ namespace MessageService.Services
                 .Include(i => i.Clan)
                 .FirstOrDefaultAsync(i => i.InviteCode == code);
         }
-        public async Task<(bool, string)> ValidateAndUseInvitationAsync(string code)
+        public async Task<(bool, string, ClanInvitation)> ValidateAndUseInvitationAsync(string code)
         {
             var invitation = await GetInvitationByCodeAsync(code);
               if (invitation == null || !invitation.IsActive)
-                return (false,"The code is invalid or inactive");
+                return (false,"The code is invalid or inactive", null);
             if (DateTime.UtcNow > invitation.ExpiresAt)
             {
                 invitation.IsActive = false;
                 await _context.SaveChangesAsync();
-                return (false, "Expired invitation code");
+                return (false, "Expired invitation code", null);
             }
           
             if (invitation.UsedCount >= invitation.MaxUses)
             {
                 invitation.IsActive = false;
                 await _context.SaveChangesAsync();
-                return (false, "Max usage limit reached");
+                return (false, "Max usage limit reached", null);
             }
 
             invitation.UsedCount++;
             await _context.SaveChangesAsync();
 
-            return (true, "Invitation code is valid");
+            return (true, "Invitation code is valid", invitation);
         }
      
     }
