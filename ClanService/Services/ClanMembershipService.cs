@@ -14,12 +14,17 @@ namespace ClanService.Services
             _context = context;
         }
 
-        public async Task<ClanMembership> AddMemberAsync(ClanMembership membership)
+        public async Task<(ClanMembership, string)> AddMemberAsync(ClanMembership membership)
         {
+            var existingMembership= await _context.ClanMemberships
+                .FirstOrDefaultAsync(cm => cm.ClanId == membership.ClanId && cm.UserId == membership.UserId);
+            if (existingMembership != null) 
+                return (null, "User is already a member of this clan.");
+
             membership.Id = Guid.NewGuid(); 
             await _context.ClanMemberships.AddAsync(membership);
             await _context.SaveChangesAsync();
-            return membership;
+            return (membership, "User added to the clan successfully.");
         }
 
         public async Task<ClanMembership> GetMembershipAsync(Guid membershipId)

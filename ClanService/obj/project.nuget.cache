@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "5IPaNCPMzTA=",
+  "dgSpecHash": "JIlj3oCYupA=",
   "success": true,
-  "projectFilePath": "C:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\Clanservice\\ClanService.csproj",
+  "projectFilePath": "c:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\ClanService\\ClanService.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Sezgin\\.nuget\\packages\\automapper\\13.0.1\\automapper.13.0.1.nupkg.sha512",
     "C:\\Users\\Sezgin\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",

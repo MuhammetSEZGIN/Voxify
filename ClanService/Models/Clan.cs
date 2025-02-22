@@ -29,6 +29,7 @@ namespace ClanService.Models
         /// ClanMemberShip tablosuyla bire-çok ilişki de tanımlanabilir.
         /// </summary>
         public List<ClanMembership> ClanMemberShips { get; set; } = new List<ClanMembership>();
+        public List<ClanInvitation> ClanInvitations {get; set;} = new List<ClanInvitation>();
     }
 
 }

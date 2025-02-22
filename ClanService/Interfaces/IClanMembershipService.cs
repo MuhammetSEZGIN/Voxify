@@ -4,7 +4,7 @@ namespace ClanService.Interfaces
 {
     public interface IClanMembershipService
     {
-        Task<ClanMembership> AddMemberAsync(ClanMembership membership);
+        Task<(ClanMembership, string)> AddMemberAsync(ClanMembership membership);
         Task<ClanMembership> GetMembershipAsync(Guid membershipId);
         Task<List<ClanMembership>> GetMembershipsByClanIdAsync(Guid clanId);
         Task<List<ClanMembership>> GetMembershipsByUserIdAsync(string userId);

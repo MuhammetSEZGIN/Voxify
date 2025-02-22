@@ -16,7 +16,7 @@ namespace ClanService.Data
         public DbSet<ClanMembership> ClanMemberships { get; set; }
         public DbSet<VoiceChannel> VoiceChannels { get; set; }
         public DbSet<User> Users { get; set; }
-
+        public DbSet<ClanInvitation> ClanInvitations { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -36,6 +36,12 @@ namespace ClanService.Data
                 HasOne(cm => cm.User).
                 WithMany(u => u.ClanMemberships).
                 HasForeignKey(cm => cm.UserId).
+                OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ClanInvitation>().
+                HasOne(ci => ci.Clan).
+                WithMany(c => c.ClanInvitations).
+                HasForeignKey(ci => ci.ClanId).
                 OnDelete(DeleteBehavior.Cascade);
         }
     }

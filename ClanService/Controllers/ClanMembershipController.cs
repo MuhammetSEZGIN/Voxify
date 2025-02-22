@@ -12,31 +12,17 @@ namespace ClanService.Controllers
     public class ClanMembershipController : ControllerBase
     {
         private readonly IClanMembershipService _clanMembershipService;
-        private readonly IMapper _mapper;   
+        private readonly IClanService _clanService;
+        private readonly IMapper _mapper;
 
-        public ClanMembershipController(IClanMembershipService clanMembershipService, IMapper mapper)
+        public ClanMembershipController(IClanMembershipService clanMembershipService, IMapper mapper, IClanService clanService)
         {
             _clanMembershipService = clanMembershipService;
             _mapper = mapper;
+            _clanService = clanService;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> AddMember([FromBody] ClanMembershipCreateDto dto)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(new ErrorDto 
-                { 
-                    Message = "Invalid membership data.", 
-                    Errors = ModelState 
-                });
 
-            var membership = _mapper.Map<ClanMembership>(dto);
-            membership.Role= ClanRole.Member;
-            var created = await _clanMembershipService.AddMemberAsync(membership);
-            var readDto = _mapper.Map<ClanMembershipReadDto>(created);  
-
-            return Ok(readDto);
-        }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetMembership(Guid id)
@@ -61,7 +47,7 @@ namespace ClanService.Controllers
         public async Task<IActionResult> GetMembershipsByUserId(string userId)
         {
             var memberships = await _clanMembershipService.GetMembershipsByUserIdAsync(userId);
-            var readDtoList = _mapper.Map<List<ClanMembershipReadDto>>(memberships);    
+            var readDtoList = _mapper.Map<List<ClanMembershipReadDto>>(memberships);
             return Ok(readDtoList);
         }
 
@@ -73,6 +59,46 @@ namespace ClanService.Controllers
                 return NotFound(new ErrorDto { Message = "Membership not found or already removed." });
 
             return NoContent();
+        }
+
+        [HttpPost("{clanId}/invitations")]
+        public async Task<IActionResult> CreateInvitation(Guid clanId)
+        {
+            var clan = await _clanService.GetClanByIdAsync(clanId);
+            if (clan == null)
+                return NotFound(new ErrorDto { Message = "Clan not found." });
+
+            var invitation = await _clanService.CreateInviteTokenAsync(clanId);
+
+            return Ok(new
+            {
+                InviteCode = invitation.InviteCode,
+                ExpiresAt = invitation.ExpiresAt,
+                MaxUses = invitation.MaxUses
+            });
+        }
+
+        [HttpPost("join/{inviteCode}")]
+        public async Task<IActionResult> JoinClanWithInvite(string inviteCode, [FromBody] string userId)
+        {
+            var (isValid,validateMessage) = await _clanService.ValidateAndUseInvitationAsync(inviteCode);
+            if (!isValid)
+                return BadRequest(new ErrorDto { Message = validateMessage });
+
+            var invitation = await _clanService.GetInvitationByCodeAsync(inviteCode);
+
+            var membership = new ClanMembership
+            {
+                ClanId = invitation.ClanId,
+                UserId = userId,
+                Role = ClanRole.Member
+            };
+
+            var (result, message) = await _clanMembershipService.AddMemberAsync(membership);
+            if(result == null)
+                return BadRequest(new ErrorDto { Message = message });
+            
+            return Ok(_mapper.Map<ClanMembershipReadDto>(result));
         }
     }
 }

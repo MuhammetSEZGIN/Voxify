@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ClanService")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bbf5abc305f19a7c1f6a5a83f93cd9d8550d5e9a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9941a0c6f8abdf817ff1951869da95c9e104c82a")]
 [assembly: System.Reflection.AssemblyProductAttribute("ClanService")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ClanService")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

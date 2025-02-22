@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\Clanservice\\ClanService.csproj": {}
+    "c:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\ClanService\\ClanService.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\Clanservice\\ClanService.csproj": {
+    "c:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\ClanService\\ClanService.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\Clanservice\\ClanService.csproj",
+        "projectUniqueName": "c:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\ClanService\\ClanService.csproj",
         "projectName": "ClanService",
-        "projectPath": "C:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\Clanservice\\ClanService.csproj",
+        "projectPath": "c:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\ClanService\\ClanService.csproj",
         "packagesPath": "C:\\Users\\Sezgin\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\Clanservice\\obj\\",
+        "outputPath": "c:\\Users\\Sezgin\\Desktop\\Github_Projects\\sesver\\ClanService\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

@@ -43,7 +43,7 @@ namespace MessageService.Services
                 _logger.LogError(e, "Error while creating clan");
                 return null;
             }
-        
+
         }
 
         public async Task<Clan> GetClanByIdAsync(Guid clanId)
@@ -52,7 +52,7 @@ namespace MessageService.Services
             return await _context.Clans
                 .Include(c => c.Channels)
                 .Include(c => c.VoiceChannels)
-                .Include(c=>c.ClanMemberShips).ThenInclude(cm=>cm.User)
+                .Include(c => c.ClanMemberShips).ThenInclude(cm => cm.User)
                 .FirstOrDefaultAsync(c => c.ClanId == clanId);
         }
 
@@ -75,10 +75,10 @@ namespace MessageService.Services
 
             _context.Clans.Remove(existing);
             await _context.SaveChangesAsync();
-        
+
             return true;
         }
-        
+
         public async Task<List<Clan>> GetClansByUserIdAsync(string userId)
         {
             return await _context.ClanMemberships
@@ -86,6 +86,60 @@ namespace MessageService.Services
                 .Select(cm => cm.Clan)
                 .Distinct()
                 .ToListAsync();
-        }  
+        }
+
+        public async Task<ClanInvitation> CreateInviteTokenAsync(Guid clanId, TimeSpan? expipreInHours, int? maxUses)
+        {
+            var ClanInvitition = new ClanInvitation
+            {
+                ClanId = clanId,
+                ExpiresAt = DateTime.UtcNow.Add(expipreInHours ?? TimeSpan.FromHours(24)),
+                InviteCode = GenerateInviteCode(),
+                IsActive = false,
+                MaxUses = maxUses ?? 10,
+                UsedCount = 0
+
+            };
+            await _context.ClanInvitations.AddAsync(ClanInvitition);
+            await _context.SaveChangesAsync();
+            return ClanInvitition;
+        }
+
+        private string GenerateInviteCode()
+        {
+            return Convert.ToBase64String(Guid.NewGuid().ToByteArray())[..8];
+        }
+
+        public async Task<ClanInvitation> GetInvitationByCodeAsync(string code)
+        {
+            return await _context.ClanInvitations
+                .Include(i => i.Clan)
+                .FirstOrDefaultAsync(i => i.InviteCode == code);
+        }
+        public async Task<(bool, string)> ValidateAndUseInvitationAsync(string code)
+        {
+            var invitation = await GetInvitationByCodeAsync(code);
+              if (invitation == null || !invitation.IsActive)
+                return (false,"The code is invalid or inactive");
+            if (DateTime.UtcNow > invitation.ExpiresAt)
+            {
+                invitation.IsActive = false;
+                await _context.SaveChangesAsync();
+                return (false, "Expired invitation code");
+            }
+          
+            if (invitation.UsedCount >= invitation.MaxUses)
+            {
+                invitation.IsActive = false;
+                await _context.SaveChangesAsync();
+                return (false, "Max usage limit reached");
+            }
+
+            invitation.UsedCount++;
+            await _context.SaveChangesAsync();
+
+            return (true, "Invitation code is valid");
+        }
+     
     }
 }
