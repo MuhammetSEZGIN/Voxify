@@ -9,5 +9,6 @@ namespace ClanService.Interfaces
         Task<List<ClanMembership>> GetMembershipsByClanIdAsync(Guid clanId);
         Task<List<ClanMembership>> GetMembershipsByUserIdAsync(string userId);
         Task<bool> RemoveMemberAsync(Guid membershipId);
+        Task <(ClanMembership,string)>LeaveClanAsync(string userId,Guid clanId);
     }
 }

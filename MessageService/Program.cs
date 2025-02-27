@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-
 using MessageService.Data;
 using MessageService.Interfaces;
 using MessageService.Hubs;
@@ -7,6 +6,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
 using MessageService.RabbitMq;
 using MessageService.Services;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +22,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<ApplicationDbContext>();
 
 builder.Services.AddScoped<IMessageService, MessageService.Services.MessageService>();
 /*
@@ -96,11 +99,13 @@ builder.Services.AddCors(options =>
 
 
 var app = builder.Build();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -110,7 +115,27 @@ using (var scope = app.Services.CreateScope())
 
 app.UseRouting();
 app.UseCors("AllowAll");
-
+app.MapHealthChecks("/health", new HealthCheckOptions()
+{
+    ResponseWriter = async (context, report) =>
+    {
+        context.Response.ContentType = "application/json";
+        
+        var response = new
+        {
+            status = report.Status.ToString(),
+            checks = report.Entries.Select(e => new
+            {
+                name = e.Key,
+                status = e.Value.Status.ToString(),
+                description = e.Value.Description,
+                exception = e.Value.Exception?.Message
+            })
+        };
+        
+        await context.Response.WriteAsJsonAsync(response);
+    }
+});
 app.UseAuthentication();
 app.UseRateLimiter();
 app.UseAuthorization();

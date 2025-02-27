@@ -8,49 +8,81 @@ namespace ClanService.Services
     public class ChannelService : IChannelService
     {
         private readonly ApplicationDbContext _context;
-
-        public ChannelService(ApplicationDbContext context)
+        private readonly ILogger<ChannelService> _logger;
+        public ChannelService(ApplicationDbContext context, ILogger<ChannelService> logger)
         {
+            _logger = logger;
             _context = context;
         }
 
-        public async Task<Channel> CreateChannelAsync(Channel channel)
+        public async Task<(Channel, string)> CreateChannelAsync(Channel channel)
         {
-            channel.ChannelId = Guid.NewGuid();
-            await _context.Channels.AddAsync(channel);
-            await _context.SaveChangesAsync();
-            return channel;
+            try
+            {
+                var clan = await _context.Clans.FindAsync(channel.ClanId);
+                if (clan == null)
+                    return (null, "Clan not found");
+
+                channel.ChannelId = Guid.NewGuid();
+                await _context.Channels.AddAsync(channel);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Channel {ChannelId} created successfully for clan {ClanId}", channel.ChannelId, channel.ClanId);
+                return (channel, "Channel created successfully");
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error creating channel for clan {ClanId}", channel.ClanId);
+                return (null, "Error while creating channel");
+            }
         }
 
         public async Task<Channel> GetChannelByIdAsync(Guid channelId)
         {
-            return await _context.Channels
-                .FirstOrDefaultAsync(c => c.ChannelId == channelId);
+            return await _context.Channels.AsNoTracking()
+            .FirstOrDefaultAsync(c => c.ChannelId == channelId);
+
         }
 
         public async Task<List<Channel>> GetChannelsByClanIdAsync(Guid clanId)
         {
-            return await _context.Channels
+            return await _context.Channels.AsNoTracking()
                 .Where(c => c.ClanId == clanId)
                 .ToListAsync();
         }
 
         public async Task<Channel> UpdateChannelAsync(Channel channel)
         {
-            _context.Channels.Update(channel);
-            await _context.SaveChangesAsync();
-            return channel;
+            try
+            {
+                _context.Channels.Update(channel);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Channel {ChannelId} updated successfully", channel.ChannelId);
+                return channel;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error updating channel {ChannelId}", channel.ChannelId);
+                return null;
+            }
+
         }
 
         public async Task<bool> DeleteChannelAsync(Guid channelId)
         {
-            var existing = await _context.Channels.FindAsync(channelId);
-            if (existing == null) return false;
-
-            _context.Channels.Remove(existing);
-            await _context.SaveChangesAsync();
-            return true;
+            try
+            {
+                var existing = await _context.Channels.FindAsync(channelId);
+                if (existing == null) return false;
+                _context.Channels.Remove(existing);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error deleting channel {ChannelId}", channelId);
+                return false;
+            }
         }
- 
+
     }
 }

@@ -31,7 +31,9 @@ namespace ClanService.Controllers
 
             var voiceChannel = _mapper.Map<VoiceChannel>(dto);
             var created = await _voiceChannelService.CreateVoiceChannelAsync(voiceChannel);
-            var readDto = _mapper.Map<VoiceChannelReadDto>(created);    
+            if (created.Item1 == null)
+                return NotFound(new ErrorDto { Message = created.Item2 });
+            var readDto = _mapper.Map<VoiceChannelReadDto>(created.Item1);    
 
             return Ok(readDto);
         }

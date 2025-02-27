@@ -23,7 +23,8 @@ public class MessageService : IMessageService
             _db.Messages.Add(message);
             message.CreatedAt = DateTime.UtcNow;
             await _db.SaveChangesAsync();
-        }catch(Exception e)
+        }
+        catch (Exception e)
         {
             _logger.LogError(e, "Error saving message to database");
         }
@@ -40,26 +41,46 @@ public class MessageService : IMessageService
         await _db.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<Message>> GetMessagesInChannelAsync(Guid channelId, int limit)
+    public async Task<IEnumerable<Message>> GetMessagesInChannelAsync(Guid channelId, int limit, int page)
     {
-        var messages = await _db.Messages
-        .Where(x => x.ChannelId == channelId)
-        .Include(x => x.User).Where(x => x.User.Id == x.SenderId)
-        .OrderByDescending(x => x.CreatedAt)
-        .ToListAsync();
-        _logger.LogInformation("Found {Count} messages for channelId {ChannelId}", messages.Count, channelId);
-        return messages.Take(limit);
+        try{
+            var messages = await _db.Messages
+                .AsNoTracking()
+                .Where(x => x.ChannelId == channelId)
+                .Include(x => x.User).Where(x => x.User.Id == x.SenderId)
+                .OrderByDescending(x => x.CreatedAt)
+                .Skip((page - 1) * limit)
+                .Take(limit)
+                .ToListAsync();
+            _logger.LogInformation("Found {Count} messages for channelId {ChannelId}", messages.Count, channelId);
+            return messages;
+        }catch(Exception e){
+            _logger.LogError(e, "Error getting messages for channelId {ChannelId}", channelId);
+            return null;
+        }
     }
 
     public async Task<Message> UpdateMessage(Guid messageId, string newContent)
     {
-        var message = await _db.Messages.FindAsync(messageId);
-        if (message == null)
-            return null;
+        try
+        {
+            var message = await _db.Messages.FindAsync(messageId);
+            if (message == null)
+            {
+                _logger.LogError("Message with id {MessageId} not found", messageId);
+                return null;
+            }
 
-        message.Text = newContent;
-        await _db.SaveChangesAsync();
-        return message;
+            message.Text = newContent;
+            await _db.SaveChangesAsync();
+            _logger.LogInformation("Updated message with id {MessageId}", messageId);
+            return message;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error updating message with id {MessageId}", messageId);
+            return null;
+        }
     }
 
 }

@@ -31,8 +31,12 @@ namespace ClanService.Controllers
                 });
             var channel = _mapper.Map<Channel>(dto);
             var created = await _channelService.CreateChannelAsync(channel);
-
-            var readDto = _mapper.Map<ChannelReadDto>(created);
+            if(created.Item1 == null)
+                return NotFound(new ErrorDto
+                {
+                    Message = created.Item2
+                }); 
+            var readDto = _mapper.Map<ChannelReadDto>(created.Item1);
             return Ok(readDto);
         }
 

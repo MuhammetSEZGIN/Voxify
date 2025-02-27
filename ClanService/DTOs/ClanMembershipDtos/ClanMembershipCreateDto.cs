@@ -9,6 +9,6 @@ namespace ClanService.DTOs
         [Required]
         public string UserId { get; set; }
 
-        public string ClanRole { get; set; }  
+        public string Role { get; set; }  
     }
 }

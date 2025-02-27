@@ -14,12 +14,15 @@ namespace ClanService.Services
             _context = context;
         }
 
-        public async Task<VoiceChannel> CreateVoiceChannelAsync(VoiceChannel voiceChannel)
+        public async Task<(VoiceChannel, string)> CreateVoiceChannelAsync(VoiceChannel voiceChannel)
         {
-            voiceChannel.VoiceChannelId = Guid.NewGuid();
+            var clan = await _context.Clans.FindAsync(voiceChannel.ClanId);
+            if(clan == null) 
+                return (null, "Clan not found");
+            
             await _context.VoiceChannels.AddAsync(voiceChannel);
             await _context.SaveChangesAsync();
-            return voiceChannel;
+            return (voiceChannel, "VoiceChannel created successfully");
         }
 
         public async Task<VoiceChannel> GetVoiceChannelByIdAsync(Guid voiceChannelId)

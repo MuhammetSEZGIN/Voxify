@@ -4,6 +4,7 @@ using ClanService.Models;
 using ClanService.DTOs;
 using AutoMapper;
 using ClanService.DTOs.ClanDtos;
+using ClanService.DTOs.ClanMembershipDtos;
 
 namespace ClanService.Controllers
 {
@@ -60,7 +61,16 @@ namespace ClanService.Controllers
 
             return NoContent();
         }
+        
+        [HttpDelete("{clanId}/user/{userId}")]
+        public async Task<IActionResult> LeaveClan(string userId, Guid clanId)
+        {
+            var result = await _clanMembershipService.LeaveClanAsync(userId, clanId);
+            if (result.Item1.Equals(null))
+                return NotFound(new ErrorDto { Message =result.Item2 });
 
+            return NoContent();
+        }
         [HttpPost("{clanId}/invitations")]
         public async Task<IActionResult> CreateInvitation(Guid clanId)
         {
@@ -78,17 +88,17 @@ namespace ClanService.Controllers
             });
         }
 
-        [HttpPost("join/{inviteCode}")]
-        public async Task<IActionResult> JoinClanWithInvite(string inviteCode, [FromBody] string userId)
+        [HttpPost("join")]
+        public async Task<IActionResult> JoinClanWithInvite([FromBody] InviteCodeDto inviteCode)
         {
-            var (isValid,validateMessage, invitation) = await _clanService.ValidateAndUseInvitationAsync(inviteCode);
+            var (isValid,validateMessage, invitation) = await _clanService.ValidateAndUseInvitationAsync(inviteCode.InviteCode);
             if (!isValid)
                 return BadRequest(new ErrorDto { Message = validateMessage });
 
             var membership = new ClanMembership
             {
                 ClanId = invitation.ClanId,
-                UserId = userId,
+                UserId = inviteCode.UserId,
                 Role = ClanRole.Member
             };
 

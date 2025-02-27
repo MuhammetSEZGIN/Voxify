@@ -2,14 +2,16 @@ using System;
 using MessageService.DTOs;
 using MessageService.Interfaces;
 using MessageService.Models;
+using MessageService.Services;
 using Microsoft.AspNetCore.SignalR;
 
 namespace MessageService.Hubs;
 
-public class MessageHub: Hub
+public class MessageHub : Hub
 {
     private readonly IMessageService _messageService;
     private readonly ILogger<MessageHub> _logger;
+    private readonly IBackgroundTaskQueue _backgroundTaskQueue;
     private readonly IServiceScopeFactory _serviceScopeFactory;
 
     public MessageHub(IMessageService messageService, ILogger<MessageHub> logger, IServiceScopeFactory serviceScopeFactory)
@@ -18,9 +20,14 @@ public class MessageHub: Hub
         _messageService = messageService;
         _logger = logger;
     }
-    public async Task SendMessage(Guid channelId, string senderId, string userName, string message)   
+    public async Task SendMessage(Guid channelId, string senderId, string userName, string message)
     {
-      
+        if (string.IsNullOrWhiteSpace(message))
+        {
+            _logger.LogWarning("Empty message attempted to be send by {UserName}", userName);
+            return;
+        }
+
         var messageDto = new MessageDto
         {
             Id = Guid.NewGuid(),
@@ -32,43 +39,65 @@ public class MessageHub: Hub
         };
 
         await Clients.Group(channelId.ToString()).SendAsync("ReceiveMessage", messageDto);
-        _logger.LogInformation("Message sent to channel {ChannelId} by {UserName}", channelId, userName);
-          var newMessage = new Message
+        var newMessage = new Message
         {
-            Id = messageDto.Id,    
+            Id = messageDto.Id,
             ChannelId = channelId,
             SenderId = senderId,
             Text = message,
-            CreatedAt = DateTime.UtcNow 
+            CreatedAt = DateTime.UtcNow
         };
-      
-        _ = Task.Run(async () =>
+        await _backgroundTaskQueue.QueueBackgroundWorkItemAsync(async token =>
         {
-            using (var scope = _serviceScopeFactory.CreateScope())
+            try
             {
+                using var scope = _serviceScopeFactory.CreateScope();
                 var messageService = scope.ServiceProvider.GetRequiredService<IMessageService>();
                 await messageService.CreateMessage(newMessage);
+                _logger.LogInformation("Message {MessageId} succesfully saved to database", newMessage.Id);
+            }catch(Exception e){
+                _logger.LogError(e, "Error saving message to database");
             }
         });
+
     }
- 
+
     public async Task UpdateMessage(Guid messageId, string newContent)
     {
-        var updatedMessage = await _messageService.UpdateMessage(messageId, newContent);
-        if(updatedMessage == null)
-            return;
-        var messageDto = new MessageDto
+        try
         {
-            Id = updatedMessage.Id,
-            UserName = updatedMessage.User.UserName,
-            ChannelId = updatedMessage.ChannelId,
-            SenderId = updatedMessage.SenderId,
-            Text = updatedMessage.Text,
-            CreatedAt = updatedMessage.CreatedAt
-        };
-        await Clients.Group(updatedMessage.ChannelId.ToString()).SendAsync("MessageUpdated", messageDto);
+            if (string.IsNullOrEmpty(newContent))
+            {
+                _logger.LogWarning("Empty content in UpdateMessage for {MessageId}", messageId);
+                return;
+            }
+
+            var updatedMessage = await _messageService.UpdateMessage(messageId, newContent);
+            if (updatedMessage == null)
+            {
+                _logger.LogWarning("Message {MessageId} not found for update", messageId);
+                return;
+            }
+
+            //mapper can be added later
+            var messageDto = new MessageDto
+            {
+                Id = updatedMessage.Id,
+                UserName = updatedMessage.User.UserName,
+                ChannelId = updatedMessage.ChannelId,
+                SenderId = updatedMessage.SenderId,
+                Text = updatedMessage.Text,
+                CreatedAt = updatedMessage.CreatedAt
+            };
+            await Clients.Group(updatedMessage.ChannelId.ToString()).SendAsync("MessageUpdated", messageDto);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error updating message {MessageId}", messageId);
+            await Clients.Caller.SendAsync("MessageUpdateFailed", messageId);
+        }
     }
-    
+
     public async Task JoinChannel(Guid channelId)
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, channelId.ToString());
