@@ -14,8 +14,13 @@ public class MessageHub : Hub
     private readonly IBackgroundTaskQueue _backgroundTaskQueue;
     private readonly IServiceScopeFactory _serviceScopeFactory;
 
-    public MessageHub(IMessageService messageService, ILogger<MessageHub> logger, IServiceScopeFactory serviceScopeFactory)
+    public MessageHub(IMessageService messageService,
+        ILogger<MessageHub> logger,
+        IServiceScopeFactory serviceScopeFactory,
+        IBackgroundTaskQueue backgroundTaskQueue
+      )
     {
+        _backgroundTaskQueue = backgroundTaskQueue;
         _serviceScopeFactory = serviceScopeFactory;
         _messageService = messageService;
         _logger = logger;
@@ -55,7 +60,9 @@ public class MessageHub : Hub
                 var messageService = scope.ServiceProvider.GetRequiredService<IMessageService>();
                 await messageService.CreateMessage(newMessage);
                 _logger.LogInformation("Message {MessageId} succesfully saved to database", newMessage.Id);
-            }catch(Exception e){
+            }
+            catch (Exception e)
+            {
                 _logger.LogError(e, "Error saving message to database");
             }
         });
@@ -72,8 +79,8 @@ public class MessageHub : Hub
                 return;
             }
 
-            var updatedMessage = await _messageService.UpdateMessage(messageId, newContent);
-            if (updatedMessage == null)
+            var result = await _messageService.UpdateMessage(messageId, newContent);
+            if (result == null)
             {
                 _logger.LogWarning("Message {MessageId} not found for update", messageId);
                 return;
@@ -82,14 +89,14 @@ public class MessageHub : Hub
             //mapper can be added later
             var messageDto = new MessageDto
             {
-                Id = updatedMessage.Id,
-                UserName = updatedMessage.User.UserName,
-                ChannelId = updatedMessage.ChannelId,
-                SenderId = updatedMessage.SenderId,
-                Text = updatedMessage.Text,
-                CreatedAt = updatedMessage.CreatedAt
+                Id = result.Data.Id,
+                UserName = result.Data.User.UserName,
+                ChannelId = result.Data.ChannelId,
+                SenderId = result.Data.SenderId,
+                Text = result.Data.Text,
+                CreatedAt = result.Data.CreatedAt
             };
-            await Clients.Group(updatedMessage.ChannelId.ToString()).SendAsync("MessageUpdated", messageDto);
+            await Clients.Group(result.Data.ChannelId.ToString()).SendAsync("MessageUpdated", messageDto);
         }
         catch (Exception e)
         {

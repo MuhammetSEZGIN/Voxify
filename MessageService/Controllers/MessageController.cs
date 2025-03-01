@@ -21,23 +21,44 @@ namespace MessageService.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetMessagesInChannelAsync(Guid channelId, int limit)
+       public async Task<IActionResult> GetMessagesInChannelAsync(
+            [FromQuery] Guid channelId, 
+            [FromQuery] int limit = 20, 
+            [FromQuery] int page = 1)
         {
+            var result = await _messageService.GetMessagesInChannelAsync(channelId, limit, page);
             
-            var messages = await _messageService.GetMessagesInChannelAsync(channelId, limit);
+            if (!result.IsSuccess)
+            {
+                return StatusCode(result.StatusCode, new { message = result.Message });
+            }
 
-            var messageDtos = messages.Select(m => new MessageDto 
+            var messageDtos = result.Data.Select(m => new MessageDto 
             {
                 Id = m.Id,
-                UserName = m.User != null ? m.User.UserName : string.Empty,
+                UserName = m.User?.UserName ?? "Unknown",
                 ChannelId = m.ChannelId,
-                AvatarUrl = m.User != null ? "https://www.pngwing.com/en/search?q=user+Avatar" : string.Empty,
+                AvatarUrl = m.User?.AvatarUrl ?? string.Empty,
                 SenderId = m.SenderId,
                 Text = m.Text,
                 CreatedAt = m.CreatedAt
             }).ToList();
+            
             return Ok(messageDtos);
-        }   
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> DeleteMessageAsync(Guid messageId)
+        {
+            var result = await _messageService.DeleteMessageAsync(messageId);
+            
+            if (!result.IsSuccess)
+            {
+                return StatusCode(result.StatusCode, new { message = result.Message });
+            }
+            
+            return Ok(new { message = "Message deleted successfully" });
+        }
 
     }
 }

@@ -7,6 +7,8 @@ using System.Threading.RateLimiting;
 using MessageService.RabbitMq;
 using MessageService.Services;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using MessageService.Interfaces.Services;
+using MessageService.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +29,12 @@ builder.Services.AddHealthChecks()
     .AddDbContextCheck<ApplicationDbContext>();
 
 builder.Services.AddScoped<IMessageService, MessageService.Services.MessageService>();
+builder.Services.AddScoped<IMessageRepository, MessageRepository>();
+builder.Services.AddSingleton<IBackgroundTaskQueue>(
+    provider=> new BackgroundTaskQueue(capacity:100)
+);
+builder.Services.AddHostedService<QueuedHostedService>();
+
 /*
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
