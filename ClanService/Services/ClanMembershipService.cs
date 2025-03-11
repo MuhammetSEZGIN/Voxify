@@ -17,7 +17,7 @@ namespace ClanService.Services
 
         public async Task<(ClanMembership, string)> AddMemberAsync(ClanMembership membership)
         {
-            try
+            try  
             {
                 var existingMembership = await _context.ClanMemberships.AsNoTracking()
                 .FirstOrDefaultAsync(cm => cm.ClanId == membership.ClanId && cm.UserId == membership.UserId);
@@ -32,7 +32,8 @@ namespace ClanService.Services
                 await _context.SaveChangesAsync();
                 _logger.LogInformation("User {UserId} added to clan {ClanId} successfully.", membership.UserId, membership.ClanId);
                 return (membership, "User added to the clan successfully.");
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while adding user {UserId} to clan {ClanId}.", membership.UserId, membership.ClanId);
                 return (null, "An error occurred while adding user to the clan.");

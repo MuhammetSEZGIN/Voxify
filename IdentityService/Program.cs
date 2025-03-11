@@ -73,4 +73,17 @@ app.UseCors("AllowAll");
 
 app.UseAuthorization();
 app.MapControllers();
+
+using var scope = app.Services.CreateScope();
+var service= scope.ServiceProvider;
+try{
+    var db = service.GetRequiredService<DbContext>();
+    db.Database.Migrate();
+    var logger= service.GetRequiredService<ILogger<Program>>();
+    logger.LogInformation("Database Migrated");
+}
+catch{
+    var logger= service.GetRequiredService<ILogger<Program>>();
+    logger.LogInformation("An error occured while migrating the database");
+}
 app.Run();

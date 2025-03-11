@@ -1,0 +1,114 @@
+{
+  "Routes": [
+    {
+      "DownstreamPathTemplate": "/api/Auth/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "identityservice",
+          "Port": 80  
+        }
+      ],
+      "UpstreamPathTemplate": "/identity/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "SwaggerKey": "identity"
+    },
+    {
+      "DownstreamPathTemplate": "/api/Message/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "messageservice",
+          "Port": 80  
+        }
+      ],
+      "UpstreamPathTemplate": "/message/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "SwaggerKey": "message"
+    },
+    {
+      "DownstreamPathTemplate": "/api/clan/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "clanservice",
+          "Port": 80  
+        }
+      ],
+      "UpstreamPathTemplate": "/clan/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "SwaggerKey": "clan"
+    },
+    {
+      "DownstreamPathTemplate": "/api/clanMembership/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "clanservice",
+          "Port": 80  
+        }
+      ],
+      "UpstreamPathTemplate": "/clanMembership/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "SwaggerKey": "clan"
+    },
+    {
+      "DownstreamPathTemplate": "/api/voice/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "voiceservice",
+          "Port": 80  
+        }
+      ],
+      "UpstreamPathTemplate": "/voice/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "SwaggerKey": "voice"
+    }
+  ],
+  "SwaggerEndPoints": [
+    {
+      "Key": "identity",
+      "Config": [
+        {
+          "Name": "Identity API",
+          "Version": "v1",
+          "Url": "http://identityservice/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "message",
+      "Config": [
+        {
+          "Name": "Message API",
+          "Version": "v1",
+          "Url": "http://messageservice/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "clan",
+      "Config": [
+        {
+          "Name": "Clan API",
+          "Version": "v1",
+          "Url": "http://clanservice/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "voice",
+      "Config": [
+        {
+          "Name": "Voice API",
+          "Version": "v1",
+          "Url": "http://voiceservice/swagger/v1/swagger.json"
+        }
+      ]
+    }
+  ],
+  "GlobalConfiguration": {
+    "BaseUrl": "http://apigateway:5000"
+  }
+}

@@ -21,6 +21,7 @@ namespace MessageService.Services
         {
             try
             {
+
                 var user = await _context.Users.FindAsync(userId);
                 if (user == null) 
                 return (null, "User not found");
@@ -49,7 +50,6 @@ namespace MessageService.Services
 
         public async Task<Clan> GetClanByIdAsync(Guid clanId)
         {
-            // Kanallar ve üyelikler dahil çekmek isterseniz Include yapabilirsiniz
             return await _context.Clans
                 .Include(c => c.Channels)
                 .Include(c => c.VoiceChannels)

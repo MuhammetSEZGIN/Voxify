@@ -9,6 +9,9 @@ using MessageService.Services;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using MessageService.Interfaces.Services;
 using MessageService.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,7 +38,7 @@ builder.Services.AddSingleton<IBackgroundTaskQueue>(
 );
 builder.Services.AddHostedService<QueuedHostedService>();
 
-/*
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -61,7 +64,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             }
         };
     });
-*/
+
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
 
@@ -114,13 +117,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    var context = services.GetRequiredService<ApplicationDbContext>();
-    DbInitializer.Seed(context);
-}
-
 app.UseRouting();
 app.UseCors("AllowAll");
 app.MapHealthChecks("/health", new HealthCheckOptions()
@@ -149,5 +145,16 @@ app.UseRateLimiter();
 app.UseAuthorization();
 app.MapHub<MessageHub>("/messagehub");
 app.MapControllers();
-
+using var scope = app.Services.CreateScope();
+var service= scope.ServiceProvider;
+try{
+    var db = service.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
+    var logger= service.GetRequiredService<ILogger<Program>>();
+    logger.LogInformation("Database Migrated");
+}
+catch{
+    var logger= service.GetRequiredService<ILogger<Program>>();
+    logger.LogInformation("An error occured while migrating the database");
+}
 app.Run();

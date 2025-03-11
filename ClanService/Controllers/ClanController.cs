@@ -22,6 +22,8 @@ namespace ClanService.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateClan([FromBody] ClanCreateDto dto)
         {
+            var userId= HttpContext.Items["UserId"].ToString(); 
+            dto.UserId = userId;    
             if (!ModelState.IsValid)
                 return BadRequest(new ErrorDto 
                 { 

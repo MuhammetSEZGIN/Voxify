@@ -1,13 +1,12 @@
-using System.Text;
 using ClanService.Data;
 using ClanService.Mapping;
 using ClanService.Services;
 using ClanService.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using ClanService.RabbitMq;
-var builder = WebApplication.CreateBuilder(args);
+using ClanService.Messaging;
 
-// Add services to the container.
+var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
@@ -16,10 +15,13 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddRabbitMQServices(builder.Configuration);  
+builder.Services.AddRabbitMQServices(builder.Configuration);
 
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
+
+builder.Services.AddScoped<ClanServicePublisher>();
+builder.Services.AddRabbitMQProducer(builder.Configuration);
 
 builder.Services.AddScoped<IChannelService, ChannelService>();
 builder.Services.AddScoped<IClanService, MessageService.Services.ClanService>();
@@ -30,33 +32,9 @@ builder.Services.AddScoped<IVoiceChannelService, VoiceChannelService>();
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
-/*
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
-            ValidateIssuer = false,
-            ValidateAudience = false
-        };
 
-        options.Events = new JwtBearerEvents
-        {
-            OnMessageReceived = context =>
-            {
-                var accessToken = context.Request.Query["access_token"];
-                if (!string.IsNullOrEmpty(accessToken) &&
-                    (context.HttpContext.WebSockets.IsWebSocketRequest || context.Request.Headers["Accept"] == "text/event-stream"))
-                {
-                    context.Token = accessToken;
-                }
-                return Task.CompletedTask;
-            }
-        };
-    });
-*/
+
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -69,8 +47,21 @@ builder.Services.AddCors(options =>
 
 
 var app = builder.Build();
-app.UseCors("AllowAll");    
-
+app.UseCors("AllowAll");
+app.Use(async (context, next) =>
+{
+    if (context.Request.Headers.TryGetValue("X-User-Id", out var userId))
+    {
+        context.Items["UserId"] = userId.ToString();
+        
+        if (context.Request.Headers.TryGetValue("X-User-Name", out var userName))
+            context.Items["UserName"] = userName.ToString();
+        if (context.Request.Headers.TryGetValue("X-User-Avatar", out var userAvatar))
+            context.Items["UserAvatar"] = userAvatar.ToString();
+    }
+    
+    await next();
+});
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -84,7 +75,15 @@ app.UseHttpsRedirection();
 app.MapControllers();
 
 using var scope = app.Services.CreateScope();
-var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-db.Database.Migrate();
-
+var service= scope.ServiceProvider;
+try{
+    var db = service.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
+    var logger= service.GetRequiredService<ILogger<Program>>();
+    logger.LogInformation("Database Migrated");
+}
+catch{
+    var logger= service.GetRequiredService<ILogger<Program>>();
+    logger.LogInformation("An error occured while migrating the database");
+}
 app.Run();

@@ -3,11 +3,11 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /source
 
 # Copy project file and restore dependencies
-COPY ClanService/*.csproj ./
+COPY ApiGateway/*.csproj ./
 RUN dotnet restore
 
 # Copy the rest of the files and publish
-COPY ClanService/. ./
+COPY ApiGateway/. ./
 RUN dotnet publish -c Release -o /app/publish
 
 # 2) Runtime stage
@@ -17,11 +17,14 @@ WORKDIR /app
 # Copy the published output
 COPY --from=build /app/publish .
 
-# Copy configuration files
-COPY ClanService/appsettings*.json ./
+# Copy configuration files (needed for Ocelot)
+COPY ApiGateway/ocelot.docker.json ./ocelot.json
+COPY ApiGateway/swagger.json ./swagger.json
+COPY ApiGateway/appsettings*.json ./
 
-# Listen on port 80 instead of 5074
-EXPOSE 80
-ENV ASPNETCORE_URLS=http://+:80
+# Listen on port 5000
+EXPOSE 5000
+ENV ASPNETCORE_ENVIRONMENT=Development
+ENV ASPNETCORE_URLS=http://+:5000
 
-ENTRYPOINT ["dotnet", "ClanService.dll"]
+ENTRYPOINT ["dotnet", "ApiGateway.dll"]

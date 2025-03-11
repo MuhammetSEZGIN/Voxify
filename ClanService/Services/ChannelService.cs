@@ -2,6 +2,8 @@ using ClanService.Data;
 using ClanService.Models;
 using ClanService.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using ClanService.RabbitMq;
+using ClanService.DTOs;
 
 namespace ClanService.Services
 {
@@ -9,8 +11,10 @@ namespace ClanService.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<ChannelService> _logger;
-        public ChannelService(ApplicationDbContext context, ILogger<ChannelService> logger)
+        private readonly ClanServicePublisher _publisher;
+        public ChannelService(ApplicationDbContext context, ILogger<ChannelService> logger, ClanServicePublisher publisher)
         {
+            _publisher= publisher;
             _logger = logger;
             _context = context;
         }
@@ -75,6 +79,9 @@ namespace ClanService.Services
                 if (existing == null) return false;
                 _context.Channels.Remove(existing);
                 await _context.SaveChangesAsync();
+                await _publisher.PublishDeleteChannelMessageAsync(new ChannelDeletedMessage{
+                    ChannelId = channelId
+                });
                 return true;
             }
             catch (Exception e)

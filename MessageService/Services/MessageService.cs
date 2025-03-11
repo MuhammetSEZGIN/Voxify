@@ -17,6 +17,7 @@ public class MessageService : IMessageService
         _logger = logger;
     }
 
+   
     public async Task<ServiceResult<Message>> CreateMessage(Message message)
     {
         try
@@ -58,6 +59,11 @@ public class MessageService : IMessageService
         }
     }
 
+    public Task DeleteAsync(Message entity)
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task<ServiceResult<bool>> DeleteMessageAsync(Guid messageId)
     {
         try
@@ -94,6 +100,16 @@ public class MessageService : IMessageService
 
     }
 
+    public Task<IEnumerable<Message>> GetAllAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<Message> GetByIdAsync(Guid id)
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task<ServiceResult<IEnumerable<Message>>> GetMessagesInChannelAsync(Guid channelId, int limit, int page)
     {
         try
@@ -117,6 +133,11 @@ public class MessageService : IMessageService
             _logger.LogError(ex, "Error retrieving messages for channel {ChannelId}", channelId);
             return ServiceResult<IEnumerable<Message>>.Error("An error occurred while retrieving messages");
         }
+    }
+
+    public Task UpdateAsync(Message entity)
+    {
+        throw new NotImplementedException();
     }
 
     public async Task<ServiceResult<Message>> UpdateMessage(Guid messageId, string newContent)

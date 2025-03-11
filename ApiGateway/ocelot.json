@@ -37,6 +37,58 @@
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
     },
     {
+      "DownstreamPathTemplate": "/api/clanMembership/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5074  
+        }
+      ],
+      "UpstreamPathTemplate": "/clanMembership/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "SwaggerKey": "clan"
+    },
+    {
+      "DownstreamPathTemplate": "/api/voiceChannel/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5074
+        }
+      ],
+      "UpstreamPathTemplate": "/voiceChannel/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "SwaggerKey": "clan"
+    },
+    {
+      "DownstreamPathTemplate": "/api/role/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5074  
+        }
+      ],
+      "UpstreamPathTemplate": "/role/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "SwaggerKey": "clan"
+    },
+    {
+      "DownstreamPathTemplate": "/api/channel/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5074  
+        }
+      ],
+      "UpstreamPathTemplate": "/channel/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "SwaggerKey": "clan"
+    },
+    {
       "DownstreamPathTemplate": "/api/voice/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [

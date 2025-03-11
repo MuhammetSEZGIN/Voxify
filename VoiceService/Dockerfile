@@ -3,11 +3,11 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /source
 
 # Copy project file and restore dependencies
-COPY ClanService/*.csproj ./
+COPY VoiceService/*.csproj ./
 RUN dotnet restore
 
 # Copy the rest of the files and publish
-COPY ClanService/. ./
+COPY VoiceService/. ./
 RUN dotnet publish -c Release -o /app/publish
 
 # 2) Runtime stage
@@ -18,10 +18,10 @@ WORKDIR /app
 COPY --from=build /app/publish .
 
 # Copy configuration files
-COPY ClanService/appsettings*.json ./
+COPY VoiceService/appsettings*.json ./
 
-# Listen on port 80 instead of 5074
+# Listen on port 80
 EXPOSE 80
 ENV ASPNETCORE_URLS=http://+:80
 
-ENTRYPOINT ["dotnet", "ClanService.dll"]
+ENTRYPOINT ["dotnet", "VoiceService.dll"]

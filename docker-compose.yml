@@ -1,0 +1,107 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: sesver
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres-init:/docker-entrypoint-initdb.d
+      - postgres-data:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"  # AMQP
+      - "15672:15672"  # Management interface
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  apigateway:
+    build:
+      context: .
+      dockerfile: ApiGateway/Dockerfile
+    ports:
+      - "5000:5000"
+    depends_on:
+      - clanservice
+      - identityservice
+      - messageservice
+      - voiceservice
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - JWT__Key=YourSecretKeyHere1234567890123456789012345678901234567890
+
+  clanservice:
+    build:
+      context: .
+      dockerfile: ClanService/Dockerfile
+    ports:
+      - "5074:80"
+    depends_on:
+      - postgres
+      - rabbitmq
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=clanservicedb;Username=postgres;Password=postgres
+      - RabbitMQ__HostName=rabbitmq
+      - RabbitMQ__UserName=guest
+      - RabbitMQ__Password=guest
+
+  identityservice:
+    build:
+      context: .
+      dockerfile: IdentityService/Dockerfile
+    ports:
+      - "5158:80"
+    depends_on:
+      - postgres
+      - rabbitmq
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=identityservicedb;Username=postgres;Password=postgres
+      - RabbitMQ__HostName=rabbitmq
+      - RabbitMQ__UserName=guest
+      - RabbitMQ__Password=guest
+      - JWT__Key=YourSecretKeyHere1234567890123456789012345678901234567890
+
+  messageservice:
+    build:
+      context: .
+      dockerfile: MessageService/Dockerfile
+    ports:
+      - "5107:80"
+    depends_on:
+      - postgres
+      - rabbitmq
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=messageservicedb;Username=postgres;Password=postgres
+      - RabbitMQ__HostName=rabbitmq
+      - RabbitMQ__UserName=guest
+      - RabbitMQ__Password=guest
+      - JWT__Key=YourSecretKeyHere1234567890123456789012345678901234567890
+
+  voiceservice:
+    build:
+      context: .
+      dockerfile: VoiceService/Dockerfile
+    ports:
+      - "5044:80"
+    depends_on:
+      - postgres
+      - rabbitmq
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=voiceservicedb;Username=postgres;Password=postgres
+      - RabbitMQ__HostName=rabbitmq
+      - RabbitMQ__UserName=guest
+      - RabbitMQ__Password=guest
+
+volumes:
+  postgres-data:

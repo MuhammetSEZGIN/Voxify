@@ -3,7 +3,7 @@ using MessageService.Models;
 
 namespace MessageService.Interfaces.Services;
 
-public interface IUserRepository : IRepository<User, Guid>
+public interface IUserRepository :IRepository<User, string>
 {
 
 }
