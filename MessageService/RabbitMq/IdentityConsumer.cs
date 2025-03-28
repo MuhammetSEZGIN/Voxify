@@ -3,6 +3,7 @@ using MassTransit;
 using Identity.DTOs;
 using MessageService.Interfaces;
 using System.Threading.Channels;
+using MessageService.Interfaces.Services;
 namespace MessageService.RabbitMq;
 
 public class IdentityConsumer : IConsumer<UserUpdatedMessage>

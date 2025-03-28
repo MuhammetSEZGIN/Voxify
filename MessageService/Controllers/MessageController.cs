@@ -1,5 +1,6 @@
 using MessageService.DTOs;
 using MessageService.Interfaces;
+using MessageService.Interfaces.Services;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;

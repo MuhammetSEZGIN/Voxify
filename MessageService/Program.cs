@@ -1,17 +1,19 @@
 using Microsoft.EntityFrameworkCore;
 using MessageService.Data;
-using MessageService.Interfaces;
 using MessageService.Hubs;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
 using MessageService.RabbitMq;
 using MessageService.Services;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using MessageService.Interfaces.Services;
 using MessageService.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using MessageService.Interfaces.Services;
+
+using MessageService.Interfaces.Repositories.IUserRepository;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +35,8 @@ builder.Services.AddHealthChecks()
 
 builder.Services.AddScoped<IMessageService, MessageService.Services.MessageService>();
 builder.Services.AddScoped<IMessageRepository, MessageRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
 builder.Services.AddSingleton<IBackgroundTaskQueue>(
     provider=> new BackgroundTaskQueue(capacity:100)
 );
@@ -67,6 +71,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
+
 
 // kullanıcı bazlı reate limit yok sonradan eklenecek 
 builder.Services.AddRateLimiter(

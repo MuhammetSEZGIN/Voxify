@@ -1,6 +1,4 @@
-using System;
-using MessageService.Data;
-using MessageService.Interfaces;
+using MessageService.Interfaces.Repositories.IUserRepository;
 using MessageService.Interfaces.Services;
 using MessageService.Models;
 using Microsoft.EntityFrameworkCore;

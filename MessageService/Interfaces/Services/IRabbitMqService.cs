@@ -2,7 +2,7 @@ using System;
 using ClanService.DTOs;
 using Identity.DTOs;
 
-namespace MessageService.Interfaces;
+namespace MessageService.Interfaces.Services;
 
 public interface IRabbitMqService
 {

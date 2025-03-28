@@ -1,7 +1,7 @@
 using System;
 using MessageService.Models;
 
-namespace MessageService.Interfaces;
+namespace MessageService.Interfaces.Services;
 
 public interface IMessageService 
 {

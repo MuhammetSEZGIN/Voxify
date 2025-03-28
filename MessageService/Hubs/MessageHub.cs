@@ -1,6 +1,6 @@
 using System;
 using MessageService.DTOs;
-using MessageService.Interfaces;
+using MessageService.Interfaces.Services;
 using MessageService.Models;
 using MessageService.Services;
 using Microsoft.AspNetCore.SignalR;

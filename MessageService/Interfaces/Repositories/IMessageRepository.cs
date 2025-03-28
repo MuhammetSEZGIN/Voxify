@@ -1,7 +1,7 @@
 using System;
 using MessageService.Models;
 
-namespace MessageService.Interfaces.Services;
+namespace MessageService.Interfaces.Repositories.IUserRepository;
 
 public interface IMessageRepository : IRepository<Message,Guid>
 {
