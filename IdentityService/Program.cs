@@ -77,8 +77,10 @@ app.MapControllers();
 using var scope = app.Services.CreateScope();
 var service= scope.ServiceProvider;
 try{
-    var db = service.GetRequiredService<DbContext>();
+    var db = service.GetRequiredService<IdentityDbContext>();
+    db.Database.CanConnect();
     db.Database.Migrate();
+
     var logger= service.GetRequiredService<ILogger<Program>>();
     logger.LogInformation("Database Migrated");
 }

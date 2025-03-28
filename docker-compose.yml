@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:latest
@@ -35,7 +33,6 @@ services:
       - voiceservice
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - JWT__Key=YourSecretKeyHere1234567890123456789012345678901234567890
 
   clanservice:
     build:
@@ -52,7 +49,6 @@ services:
       - RabbitMQ__HostName=rabbitmq
       - RabbitMQ__UserName=guest
       - RabbitMQ__Password=guest
-
   identityservice:
     build:
       context: .
@@ -68,7 +64,6 @@ services:
       - RabbitMQ__HostName=rabbitmq
       - RabbitMQ__UserName=guest
       - RabbitMQ__Password=guest
-      - JWT__Key=YourSecretKeyHere1234567890123456789012345678901234567890
 
   messageservice:
     build:
@@ -85,7 +80,6 @@ services:
       - RabbitMQ__HostName=rabbitmq
       - RabbitMQ__UserName=guest
       - RabbitMQ__Password=guest
-      - JWT__Key=YourSecretKeyHere1234567890123456789012345678901234567890
 
   voiceservice:
     build:

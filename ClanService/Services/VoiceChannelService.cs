@@ -1,57 +1,51 @@
-using ClanService.Data;
 using ClanService.Models;
 using ClanService.Interfaces;
-using Microsoft.EntityFrameworkCore;
 
 namespace ClanService.Services
 {
     public class VoiceChannelService : IVoiceChannelService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IClanRepository _clanRepository;
+        private readonly IVoiceChannelRepository _voiceChannelRepository;
 
-        public VoiceChannelService(ApplicationDbContext context)
+        public VoiceChannelService(IClanRepository clanRepository, IVoiceChannelRepository voiceChannelRepository)
         {
-            _context = context;
+            _clanRepository = clanRepository;
+            _voiceChannelRepository = voiceChannelRepository;
         }
 
         public async Task<(VoiceChannel, string)> CreateVoiceChannelAsync(VoiceChannel voiceChannel)
         {
-            var clan = await _context.Clans.FindAsync(voiceChannel.ClanId);
+            var clan = await _clanRepository.FindAsync(voiceChannel.ClanId);
             if(clan == null) 
                 return (null, "Clan not found");
             
-            await _context.VoiceChannels.AddAsync(voiceChannel);
-            await _context.SaveChangesAsync();
+            await _voiceChannelRepository.AddAsync(voiceChannel);
             return (voiceChannel, "VoiceChannel created successfully");
         }
 
         public async Task<VoiceChannel> GetVoiceChannelByIdAsync(Guid voiceChannelId)
         {
-            return await _context.VoiceChannels
-                .FirstOrDefaultAsync(vc => vc.VoiceChannelId == voiceChannelId);
+            return await _voiceChannelRepository.GetByIdAsync(voiceChannelId);
         }
 
         public async Task<List<VoiceChannel>> GetVoiceChannelsByClanIdAsync(Guid clanId)
         {
-            return await _context.VoiceChannels
-                .Where(vc => vc.ClanId == clanId)
-                .ToListAsync();
+            return await _voiceChannelRepository.GetVoiceChannelsByClanIdAsync(clanId);
         }
 
         public async Task<VoiceChannel> UpdateVoiceChannelAsync(VoiceChannel voiceChannel)
         {
-            _context.VoiceChannels.Update(voiceChannel);
-            await _context.SaveChangesAsync();
+            await _voiceChannelRepository.UpdateAsync(voiceChannel);
             return voiceChannel;
         }
 
         public async Task<bool> DeleteVoiceChannelAsync(Guid voiceChannelId)
         {
-            var existing = await _context.VoiceChannels.FindAsync(voiceChannelId);
+            var existing = await _voiceChannelRepository.GetByIdAsync(voiceChannelId);
             if (existing == null) return false;
 
-            _context.VoiceChannels.Remove(existing);
-            await _context.SaveChangesAsync();
+            await _voiceChannelRepository.DeleteAsync(voiceChannelId);
             return true;
         }
     }

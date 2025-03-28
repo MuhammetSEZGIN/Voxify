@@ -9,27 +9,33 @@ namespace ClanService.Services
 {
     public class ChannelService : IChannelService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IClanRepository _clanRepository;
+        private readonly IChannelRepository _channelRepository;
         private readonly ILogger<ChannelService> _logger;
         private readonly ClanServicePublisher _publisher;
-        public ChannelService(ApplicationDbContext context, ILogger<ChannelService> logger, ClanServicePublisher publisher)
+
+        public ChannelService(
+            IClanRepository clanRepository,
+            IChannelRepository channelRepository,
+            ILogger<ChannelService> logger, 
+            ClanServicePublisher publisher)
         {
-            _publisher= publisher;
+            _publisher = publisher;
             _logger = logger;
-            _context = context;
+            _clanRepository = clanRepository;
+            _channelRepository = channelRepository;
         }
 
         public async Task<(Channel, string)> CreateChannelAsync(Channel channel)
         {
             try
             {
-                var clan = await _context.Clans.FindAsync(channel.ClanId);
+                var clan = await _clanRepository.FindAsync(channel.ClanId);
                 if (clan == null)
                     return (null, "Clan not found");
 
                 channel.ChannelId = Guid.NewGuid();
-                await _context.Channels.AddAsync(channel);
-                await _context.SaveChangesAsync();
+                await _channelRepository.AddAsync(channel);
                 _logger.LogInformation("Channel {ChannelId} created successfully for clan {ClanId}", channel.ChannelId, channel.ClanId);
                 return (channel, "Channel created successfully");
             }
@@ -42,24 +48,19 @@ namespace ClanService.Services
 
         public async Task<Channel> GetChannelByIdAsync(Guid channelId)
         {
-            return await _context.Channels.AsNoTracking()
-            .FirstOrDefaultAsync(c => c.ChannelId == channelId);
-
+            return await _channelRepository.GetByIdAsync(channelId);
         }
 
         public async Task<List<Channel>> GetChannelsByClanIdAsync(Guid clanId)
         {
-            return await _context.Channels.AsNoTracking()
-                .Where(c => c.ClanId == clanId)
-                .ToListAsync();
+            return await _channelRepository.GetChannelsByClanIdAsync(clanId);
         }
 
         public async Task<Channel> UpdateChannelAsync(Channel channel)
         {
             try
             {
-                _context.Channels.Update(channel);
-                await _context.SaveChangesAsync();
+                await _channelRepository.UpdateAsync(channel);
                 _logger.LogInformation("Channel {ChannelId} updated successfully", channel.ChannelId);
                 return channel;
             }
@@ -68,17 +69,17 @@ namespace ClanService.Services
                 _logger.LogError(e, "Error updating channel {ChannelId}", channel.ChannelId);
                 return null;
             }
-
         }
 
         public async Task<bool> DeleteChannelAsync(Guid channelId)
         {
             try
             {
-                var existing = await _context.Channels.FindAsync(channelId);
+                var existing = await _channelRepository.GetByIdAsync(channelId);
                 if (existing == null) return false;
-                _context.Channels.Remove(existing);
-                await _context.SaveChangesAsync();
+                
+                await _channelRepository.DeleteAsync(channelId);
+                
                 await _publisher.PublishDeleteChannelMessageAsync(new ChannelDeletedMessage{
                     ChannelId = channelId
                 });
@@ -90,6 +91,5 @@ namespace ClanService.Services
                 return false;
             }
         }
-
     }
 }

@@ -1,31 +1,32 @@
 using System;
-using ClanService.Data;
 using ClanService.Interfaces;
 
 namespace ClanService.Services;
 
 public class RoleService : IRoleService
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IClanMembershipRepository _membershipRepository;
     private readonly ILogger<RoleService> _logger;
-    public RoleService(ApplicationDbContext context, ILogger<RoleService> logger)
+    
+    public RoleService(IClanMembershipRepository membershipRepository, ILogger<RoleService> logger)
     {
         _logger = logger;
-        _context = context;
+        _membershipRepository = membershipRepository;
     }
+    
     public async Task<bool> UpdateRoleAsync(Guid membershipId, string roleName)
     {
         try
         {
-            var existingMembership = await _context.ClanMemberships.FindAsync(membershipId);
+            var existingMembership = await _membershipRepository.GetByIdAsync(membershipId);
             if (existingMembership == null)
             {
                 _logger.LogWarning("Membership not found.");
                 return false;
             }
+            
             existingMembership.Role = roleName;
-            _context.ClanMemberships.Update(existingMembership);
-            await _context.SaveChangesAsync();
+            await _membershipRepository.UpdateAsync(existingMembership);
             _logger.LogInformation("Role of membership {MembershipId} updated to {RoleName}.", membershipId, roleName);
             return true;
         }
