@@ -11,13 +11,22 @@ public class ClanRepository : Repository<Clan, Guid>, IClanRepository
     {
     }
 
-    public async Task<IEnumerable<Clan>> GetClansByUserIdAsync(string userId)
+    public async Task<IEnumerable<Clan>> GetClansByUserIdAsync(string id)
     {
         return await _context.ClanMemberships
-            .AsNoTracking()
-            .Where(x => x.UserId == userId)
-            .Select(x => x.Clan)
-            .ToListAsync();
+                .Where(cm => cm.UserId.Equals(id))
+                .Select(cm => cm.Clan)
+                .Distinct()
+                .ToListAsync(); 
+    }
+
+    public async Task<Clan> GetClanWithDetailsAsync(Guid id)
+    {
+         return await _context.Clans
+                .Include(c => c.Channels)
+                .Include(c => c.VoiceChannels)
+                .Include(c => c.ClanMemberShips).ThenInclude(cm => cm.User)
+                .FirstOrDefaultAsync(c => c.ClanId == id);   
     }
 
     public async Task<IEnumerable<Clan>> SearchClansAsync(string searchText, int limit, int page)

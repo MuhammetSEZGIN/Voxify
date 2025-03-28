@@ -7,7 +7,7 @@ namespace ClanService.Interfaces
     {
         Task<(Clan, string)> CreateClanAsync(Clan clan, string userId);
         Task<Clan> GetClanByIdAsync(Guid clanId);
-        Task<List<Clan>> GetAllClansAsync();
+        Task<IEnumerable<Clan>> GetAllClansAsync();
         Task<Clan> UpdateClanAsync(Clan clan);
         Task<bool> DeleteClanAsync(Guid clanId);
         Task<List<Clan>> GetClansByUserIdAsync(string userId);

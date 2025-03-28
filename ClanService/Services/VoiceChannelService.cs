@@ -1,5 +1,6 @@
 using ClanService.Models;
 using ClanService.Interfaces;
+using ClanService.Interfaces.Repositories;
 
 namespace ClanService.Services
 {
@@ -16,7 +17,7 @@ namespace ClanService.Services
 
         public async Task<(VoiceChannel, string)> CreateVoiceChannelAsync(VoiceChannel voiceChannel)
         {
-            var clan = await _clanRepository.FindAsync(voiceChannel.ClanId);
+            var clan = await _clanRepository.GetByIdAsync(voiceChannel.ClanId);
             if(clan == null) 
                 return (null, "Clan not found");
             
@@ -31,7 +32,8 @@ namespace ClanService.Services
 
         public async Task<List<VoiceChannel>> GetVoiceChannelsByClanIdAsync(Guid clanId)
         {
-            return await _voiceChannelRepository.GetVoiceChannelsByClanIdAsync(clanId);
+            var channels = await _voiceChannelRepository.GetVoiceChannelsByClanIdAsync(clanId);
+            return channels.ToList();
         }
 
         public async Task<VoiceChannel> UpdateVoiceChannelAsync(VoiceChannel voiceChannel)
@@ -45,7 +47,7 @@ namespace ClanService.Services
             var existing = await _voiceChannelRepository.GetByIdAsync(voiceChannelId);
             if (existing == null) return false;
 
-            await _voiceChannelRepository.DeleteAsync(voiceChannelId);
+            await _voiceChannelRepository.DeleteAsync(existing);
             return true;
         }
     }

@@ -1,6 +1,7 @@
 using System;
 using ClanService.Data;
 using ClanService.Interfaces;
+using ClanService.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace ClanService.Repositories;

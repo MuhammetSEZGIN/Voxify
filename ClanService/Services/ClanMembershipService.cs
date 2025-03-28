@@ -1,5 +1,6 @@
 using ClanService.Models;
 using ClanService.Interfaces;
+using ClanService.Interfaces.Repositories;
 
 namespace ClanService.Services
 {
@@ -23,7 +24,7 @@ namespace ClanService.Services
         {
             try  
             {
-                var existingMembership = await _membershipRepository.GetByClanAndUserIdAsync(membership.ClanId, membership.UserId);
+                var existingMembership = await _membershipRepository.GetMemberByUserAndClanIdAsync( membership.UserId,membership.ClanId);
                 if (existingMembership != null)
                     return (null, "User is already a member of this clan.");
                     
@@ -45,12 +46,13 @@ namespace ClanService.Services
 
         public async Task<ClanMembership> GetMembershipAsync(Guid membershipId)
         {
-            return await _membershipRepository.GetMembershipWithDetailsAsync(membershipId);
+            return await _membershipRepository.GetByIdAsync(membershipId);
         }
 
         public async Task<List<ClanMembership>> GetMembershipsByClanIdAsync(Guid clanId)
         {
-            return await _membershipRepository.GetByClanIdAsync(clanId);
+            var result= await _membershipRepository.GetMembersByClanIdAsync(clanId);
+            return result.ToList();
         }
 
         public async Task<List<ClanMembership>> GetMembershipsByUserIdAsync(string userId)
@@ -62,12 +64,12 @@ namespace ClanService.Services
         {
             try
             {
-                var membership = await _membershipRepository.GetByClanAndUserIdAsync(clanId, userId);
+                var membership = await _membershipRepository.GetMemberByUserAndClanIdAsync(userId, clanId);
 
                 if (membership == null)
                     return (null, "User is not a member of this clan.");
 
-                await _membershipRepository.DeleteAsync(membership.Id);
+                await _membershipRepository.DeleteAsync(membership);
 
                 _logger.LogInformation("User {UserId} has left clan {ClanId} successfully.", userId, clanId);
                 return (membership, "User has left the clan successfully.");
@@ -84,7 +86,7 @@ namespace ClanService.Services
             var existing = await _membershipRepository.GetByIdAsync(membershipId);
             if (existing == null) return false;
 
-            await _membershipRepository.DeleteAsync(membershipId);
+            await _membershipRepository.DeleteAsync(existing);
             return true;
         }
     }

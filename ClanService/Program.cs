@@ -4,7 +4,8 @@ using ClanService.Services;
 using ClanService.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using ClanService.RabbitMq;
-using ClanService.Messaging;
+using ClanService.Interfaces.Repositories;
+using ClanService.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,18 +17,23 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddRabbitMQServices(builder.Configuration);
-
-
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 builder.Services.AddScoped<ClanServicePublisher>();
-builder.Services.AddRabbitMQProducer(builder.Configuration);
-
 builder.Services.AddScoped<IChannelService, ChannelService>();
-builder.Services.AddScoped<IClanService, MessageService.Services.ClanService>();
+builder.Services.AddScoped<IClanService, ClanService.Services.ClanService>();
 builder.Services.AddScoped<IRabbitMqService, RabbitMqService>();
 builder.Services.AddScoped<IClanMembershipService, ClanMembershipService>();
 builder.Services.AddScoped<IVoiceChannelService, VoiceChannelService>();
+
+
+builder.Services.AddScoped<IChannelRepository, ChannelRepository>();
+builder.Services.AddScoped<IClanRepository, ClanRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IClanMembershipRepository, ClanMembershipRepository>();
+builder.Services.AddScoped<IClanInvitation, ClanInvitationRepository>();
+builder.Services.AddScoped<IVoiceChannelRepository, VoiceChannelRepository>();
+
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
@@ -53,13 +59,13 @@ app.Use(async (context, next) =>
     if (context.Request.Headers.TryGetValue("X-User-Id", out var userId))
     {
         context.Items["UserId"] = userId.ToString();
-        
+
         if (context.Request.Headers.TryGetValue("X-User-Name", out var userName))
             context.Items["UserName"] = userName.ToString();
         if (context.Request.Headers.TryGetValue("X-User-Avatar", out var userAvatar))
             context.Items["UserAvatar"] = userAvatar.ToString();
     }
-    
+
     await next();
 });
 // Configure the HTTP request pipeline.
@@ -75,15 +81,17 @@ app.UseHttpsRedirection();
 app.MapControllers();
 
 using var scope = app.Services.CreateScope();
-var service= scope.ServiceProvider;
-try{
+var service = scope.ServiceProvider;
+try
+{
     var db = service.GetRequiredService<ApplicationDbContext>();
     db.Database.Migrate();
-    var logger= service.GetRequiredService<ILogger<Program>>();
+    var logger = service.GetRequiredService<ILogger<Program>>();
     logger.LogInformation("Database Migrated");
 }
-catch{
-    var logger= service.GetRequiredService<ILogger<Program>>();
+catch
+{
+    var logger = service.GetRequiredService<ILogger<Program>>();
     logger.LogInformation("An error occured while migrating the database");
 }
 app.Run();

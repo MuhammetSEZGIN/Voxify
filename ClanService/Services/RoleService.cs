@@ -1,6 +1,6 @@
 using System;
 using ClanService.Interfaces;
-
+using ClanService.Interfaces.Repositories;
 namespace ClanService.Services;
 
 public class RoleService : IRoleService

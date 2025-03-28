@@ -10,8 +10,6 @@ public static class MassTransitManager
         services.AddMassTransit(x =>
          {
              x.AddConsumer<IdentityConsumer, SubmitIdentityConsumeDefinition>();
-
-
              x.UsingRabbitMq((context, cfg) =>
              {
                  cfg.Host(rabbitMqOptions.HostName, "/", h =>
@@ -23,7 +21,7 @@ public static class MassTransitManager
                  cfg.ConfigureEndpoints(context);
              });
          });
-
+        services.AddScoped<ClanServicePublisher>();
         return services;
     }
 }

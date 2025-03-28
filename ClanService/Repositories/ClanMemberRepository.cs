@@ -5,9 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ClanService.Repositories;
 
-public class ClanMemberRepository : Repository<ClanMembership, Guid>, IClanMemberRepository
+public class ClanMembershipRepository : Repository<ClanMembership, Guid>, IClanMembershipRepository
 {
-    public ClanMemberRepository(ApplicationDbContext context) : base(context)
+    public ClanMembershipRepository(ApplicationDbContext context) : base(context)
     {
     }
 
@@ -39,5 +39,14 @@ public class ClanMemberRepository : Repository<ClanMembership, Guid>, IClanMembe
         _context.ClanMemberships.RemoveRange(members);
         await _context.SaveChangesAsync();
         return true;
+    }
+
+    public async Task<List<ClanMembership>> GetByUserIdAsync(string userId)
+    {
+        return await _context.ClanMemberships
+             .AsNoTracking()
+             .Where(x => x.UserId == userId)
+             .Include(x => x.User)
+             .ToListAsync();
     }
 }

@@ -2,6 +2,7 @@ using System;
 using ClanService.Interfaces;
 using Identity.DTOs;
 using ClanService.Models;
+using ClanService.Interfaces.Repositories;
 
 namespace ClanService.Services;
 

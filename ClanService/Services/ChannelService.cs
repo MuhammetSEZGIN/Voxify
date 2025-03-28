@@ -4,6 +4,7 @@ using ClanService.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using ClanService.RabbitMq;
 using ClanService.DTOs;
+using ClanService.Interfaces.Repositories;
 
 namespace ClanService.Services
 {
@@ -30,7 +31,7 @@ namespace ClanService.Services
         {
             try
             {
-                var clan = await _clanRepository.FindAsync(channel.ClanId);
+                var clan = await _clanRepository.GetByIdAsync(channel.ClanId);
                 if (clan == null)
                     return (null, "Clan not found");
 
@@ -53,7 +54,8 @@ namespace ClanService.Services
 
         public async Task<List<Channel>> GetChannelsByClanIdAsync(Guid clanId)
         {
-            return await _channelRepository.GetChannelsByClanIdAsync(clanId);
+             var result =await _channelRepository.GetChannelsByClanIdAsync(clanId);
+            return result .ToList();
         }
 
         public async Task<Channel> UpdateChannelAsync(Channel channel)
@@ -78,7 +80,7 @@ namespace ClanService.Services
                 var existing = await _channelRepository.GetByIdAsync(channelId);
                 if (existing == null) return false;
                 
-                await _channelRepository.DeleteAsync(channelId);
+                await _channelRepository.DeleteAsync(existing);
                 
                 await _publisher.PublishDeleteChannelMessageAsync(new ChannelDeletedMessage{
                     ChannelId = channelId

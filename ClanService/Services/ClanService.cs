@@ -9,14 +9,14 @@ namespace ClanService.Services
     {
         private readonly IClanRepository _clanRepository;
         private readonly IUserRepository _userRepository;
-        private readonly IClanMemberShip _clanMembershipRepository;
+        private readonly IClanMembershipRepository _clanMembershipRepository;
         private readonly IClanInvitation _clanInvitationRepository;
         private readonly ILogger<ClanService> _logger;
 
         public ClanService(
             IClanRepository clanRepository,
             IUserRepository userRepository,
-            IClanMemberShip clanMembershipRepository,
+            IClanMembershipRepository clanMembershipRepository,
             IClanInvitation clanInvitationRepository,
             ILogger<ClanService> logger)
         {
@@ -60,7 +60,7 @@ namespace ClanService.Services
             return await _clanRepository.GetClanWithDetailsAsync(clanId);
         }
 
-        public async Task<List<Clan>> GetAllClansAsync()
+        public async Task<IEnumerable<Clan>> GetAllClansAsync()
         {
             return await _clanRepository.GetAllAsync();
         }
@@ -73,16 +73,17 @@ namespace ClanService.Services
 
         public async Task<bool> DeleteClanAsync(Guid clanId)
         {
-            var existing = await _clanRepository.FindAsync(clanId);
+            var existing = await _clanRepository.GetByIdAsync(clanId);
             if (existing == null) return false;
 
-            await _clanRepository.DeleteAsync(clanId);
+            await _clanRepository.DeleteAsync(existing);
             return true;
         }
 
         public async Task<List<Clan>> GetClansByUserIdAsync(string userId)
         {
-            return await _clanRepository.GetClansByUserIdAsync(userId);
+            var result= await _clanRepository.GetClansByUserIdAsync(userId);
+            return result.ToList(); 
         }
 
         public async Task<ClanInvitation> CreateInviteTokenAsync(Guid clanId, TimeSpan? expipreInHours, int? maxUses)
@@ -136,13 +137,5 @@ namespace ClanService.Services
 
             return (true, "Invitation code is valid", invitation);
         }
-    }
-
-    internal interface IClanInvitationRepository
-    {
-    }
-
-    internal interface IClanMembershipRepository
-    {
     }
 }

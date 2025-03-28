@@ -5,5 +5,5 @@ namespace ClanService.Interfaces.Repositories;
 
 public interface IClanInvitation : IRepository<ClanInvitation, Guid>
 {
-
+    Task<ClanInvitation> GetByCodeAsync(string code);
 }
