@@ -14,7 +14,7 @@ namespace ClanService.Models
         public string ImagePath {get; set;}
         public List<ClanMembership> ClanMemberShips { get; set; } = new List<ClanMembership>();
         public List<ClanInvitation> ClanInvitations {get; set;} = new List<ClanInvitation>();
-        public string Description { get; internal set; }
+        public string Description { get; set; }
     }
 
 }

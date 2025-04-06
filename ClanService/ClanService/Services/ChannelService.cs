@@ -1,0 +1,97 @@
+using ClanService.Data;
+using ClanService.Models;
+using ClanService.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using ClanService.RabbitMq;
+using ClanService.DTOs;
+using ClanService.Interfaces.Repositories;
+
+namespace ClanService.Services
+{
+    public class ChannelService : IChannelService
+    {
+        private readonly IClanRepository _clanRepository;
+        private readonly IChannelRepository _channelRepository;
+        private readonly ILogger<ChannelService> _logger;
+        private readonly ClanServicePublisher _publisher;
+
+        public ChannelService(
+            IClanRepository clanRepository,
+            IChannelRepository channelRepository,
+            ILogger<ChannelService> logger, 
+            ClanServicePublisher publisher)
+        {
+            _publisher = publisher;
+            _logger = logger;
+            _clanRepository = clanRepository;
+            _channelRepository = channelRepository;
+        }
+
+        public async Task<(Channel, string)> CreateChannelAsync(Channel channel)
+        {
+            try
+            {
+                var clan = await _clanRepository.GetByIdAsync(channel.ClanId);
+                if (clan == null)
+                    return (null, "Clan not found");
+
+                channel.ChannelId = Guid.NewGuid();
+                await _channelRepository.AddAsync(channel);
+                _logger.LogInformation("Channel {ChannelId} created successfully for clan {ClanId}", channel.ChannelId, channel.ClanId);
+                return (channel, "Channel created successfully");
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error creating channel for clan {ClanId}", channel.ClanId);
+                return (null, "Error while creating channel");
+            }
+        }
+
+        public async Task<Channel> GetChannelByIdAsync(Guid channelId)
+        {
+            return await _channelRepository.GetByIdAsync(channelId);
+        }
+
+        public async Task<List<Channel>> GetChannelsByClanIdAsync(Guid clanId)
+        {
+             var result =await _channelRepository.GetChannelsByClanIdAsync(clanId);
+            return result .ToList();
+        }
+
+        public async Task<Channel> UpdateChannelAsync(Channel channel)
+        {
+            try
+            {
+                await _channelRepository.UpdateAsync(channel);
+                _logger.LogInformation("Channel {ChannelId} updated successfully", channel.ChannelId);
+                return channel;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error updating channel {ChannelId}", channel.ChannelId);
+                return null;
+            }
+        }
+
+        public async Task<bool> DeleteChannelAsync(Guid channelId)
+        {
+            try
+            {
+                var existing = await _channelRepository.GetByIdAsync(channelId);
+                if (existing == null) return false;
+                
+                await _channelRepository.DeleteAsync(existing);
+                
+                await _publisher.PublishDeleteChannelMessageAsync(new ChannelDeletedMessage{
+                    ChannelId = channelId
+                });
+                return true;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error deleting channel {ChannelId}", channelId);
+                return false;
+            }
+        }
+    }
+}
