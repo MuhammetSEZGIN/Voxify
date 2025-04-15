@@ -97,5 +97,6 @@ namespace ClanService.Controllers
             var clanReadDtos = _mapper.Map<List<ClanReadDto>>(clans);
             return Ok(clanReadDtos);
         }
+
     }
 }

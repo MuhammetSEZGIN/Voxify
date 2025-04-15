@@ -15,6 +15,7 @@ namespace ClanService.Models
         public List<ClanMembership> ClanMemberShips { get; set; } = new List<ClanMembership>();
         public List<ClanInvitation> ClanInvitations {get; set;} = new List<ClanInvitation>();
         public string Description { get; set; }
+        public bool IsPublic { get; set; } = false;
     }
 
 }

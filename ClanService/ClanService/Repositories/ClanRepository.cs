@@ -31,9 +31,22 @@ public class ClanRepository : Repository<Clan, Guid>, IClanRepository
 
     public async Task<IEnumerable<Clan>> SearchClansAsync(string searchText, int limit, int page)
     {
+        // Check if searchText is null or empty
+        // If it is, return all clans with pagination
+        if(string.IsNullOrEmpty(searchText))
+            return await _context.Clans
+                .AsNoTracking()
+                .OrderBy(x => x.Name)
+                .Skip((page - 1) * limit)
+                .Take(limit)
+                .ToListAsync();
+        
+
+        var normalizedSearchText = searchText.ToLower();
         return await _context.Clans
             .AsNoTracking()
-            .Where(x => x.Name.Contains(searchText) || x.Description.Contains(searchText))
+            .Where(x =>  EF.Functions.Like(x.Name.ToLower(), $"%{normalizedSearchText}%") ||
+                         EF.Functions.Like(x.Description.ToLower(), $"%{normalizedSearchText}%"))
             .OrderBy(x => x.Name)
             .Skip((page - 1) * limit)
             .Take(limit)

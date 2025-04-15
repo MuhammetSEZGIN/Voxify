@@ -66,7 +66,7 @@ namespace ClanService.Controllers
         public async Task<IActionResult> LeaveClan(string userId, Guid clanId)
         {
             var result = await _clanMembershipService.LeaveClanAsync(userId, clanId);
-            if (result.Item1.Equals(null))
+            if (result.Item1==null)
                 return NotFound(new ErrorDto { Message =result.Item2 });
 
             return NoContent();
@@ -80,7 +80,7 @@ namespace ClanService.Controllers
 
             var invitation = await _clanService.CreateInviteTokenAsync(clanId);
 
-            return Ok(new
+            return Ok(new InviteClanDto
             {
                 InviteCode = invitation.InviteCode,
                 ExpiresAt = invitation.ExpiresAt,

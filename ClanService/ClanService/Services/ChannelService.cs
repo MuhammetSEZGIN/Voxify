@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using ClanService.RabbitMq;
 using ClanService.DTOs;
 using ClanService.Interfaces.Repositories;
+using ClanService.Interfaces.Services;
 
 namespace ClanService.Services
 {
@@ -13,13 +14,13 @@ namespace ClanService.Services
         private readonly IClanRepository _clanRepository;
         private readonly IChannelRepository _channelRepository;
         private readonly ILogger<ChannelService> _logger;
-        private readonly ClanServicePublisher _publisher;
+        private readonly IClanServicePublisher _publisher;
 
         public ChannelService(
             IClanRepository clanRepository,
             IChannelRepository channelRepository,
             ILogger<ChannelService> logger, 
-            ClanServicePublisher publisher)
+            IClanServicePublisher publisher)
         {
             _publisher = publisher;
             _logger = logger;

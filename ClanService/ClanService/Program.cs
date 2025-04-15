@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using ClanService.RabbitMq;
 using ClanService.Interfaces.Repositories;
 using ClanService.Repositories;
+using ClanService.Interfaces.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +20,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddRabbitMQServices(builder.Configuration);
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-builder.Services.AddScoped<ClanServicePublisher>();
+builder.Services.AddScoped<IClanServicePublisher, ClanServicePublisher>();
 builder.Services.AddScoped<IChannelService, ChannelService>();
 builder.Services.AddScoped<IClanService, ClanService.Services.ClanService>();
 builder.Services.AddScoped<IRabbitMqService, RabbitMqService>();

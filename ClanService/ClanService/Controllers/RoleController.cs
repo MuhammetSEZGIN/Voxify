@@ -10,20 +10,23 @@ namespace ClanService.Controllers
     public class RoleController : ControllerBase
     {
         private readonly IRoleService _roleService;
-        private readonly ILogger<RoleController> _logger;
-        public RoleController(IRoleService roleService, ILogger<RoleController> logger)
+        public RoleController(IRoleService roleService)
         {
             _roleService = roleService;
-            _logger = logger;
+      
         }
 
         [HttpPut("{membershipId}")]
         public async Task<IActionResult> UpdateRoleAsync(UpdateRoleDto roleDto)
         {
+            if(roleDto == null || roleDto.MembershipId == Guid.Empty || string.IsNullOrEmpty(roleDto.RoleName))
+            {
+                return BadRequest("Invalid input data.");
+            }
             var result = await _roleService.UpdateRoleAsync(roleDto.MembershipId, roleDto.RoleName);
             if(!result)
             {
-                return BadRequest();
+                return BadRequest("Failed to update role.");
             }
             return Ok();
         }

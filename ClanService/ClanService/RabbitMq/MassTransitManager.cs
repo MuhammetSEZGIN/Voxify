@@ -1,3 +1,4 @@
+using ClanService.Interfaces.Services;
 using MassTransit;
 namespace ClanService.RabbitMq;
 
@@ -21,7 +22,7 @@ public static class MassTransitManager
                  cfg.ConfigureEndpoints(context);
              });
          });
-        services.AddScoped<ClanServicePublisher>();
+        services.AddScoped<IClanServicePublisher>();
         return services;
     }
 }

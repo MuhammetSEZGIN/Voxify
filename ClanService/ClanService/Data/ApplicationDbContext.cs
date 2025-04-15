@@ -43,6 +43,13 @@ namespace ClanService.Data
                 WithMany(c => c.ClanInvitations).
                 HasForeignKey(ci => ci.ClanId).
                 OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Clan>()
+                .HasIndex(c => c.Name);
+            
+            modelBuilder.Entity<Clan>()
+                .HasIndex(c => c.Description);
+
         }
     }
 }

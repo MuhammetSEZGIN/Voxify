@@ -9,14 +9,14 @@ namespace ClanService.Services;
 public class RabbitMqService : IRabbitMqService
 {
     private readonly IUserRepository _userRepository;
-    private readonly ILogger<RabbitMqService> _logger;  
-    
+    private readonly ILogger<RabbitMqService> _logger;
     public RabbitMqService(IUserRepository userRepository, ILogger<RabbitMqService> logger)
     {
         _userRepository = userRepository;
         _logger = logger;
     }
-    
+
+
     public async Task ConsumeUserInformation(UserUpdatedMessage userUpdatedMessage){
         var user = new User
         {

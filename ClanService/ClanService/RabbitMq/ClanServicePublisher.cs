@@ -1,15 +1,16 @@
 using System;
 using ClanService.DTOs;
+using ClanService.Interfaces.Services;
 using MassTransit;
 
 namespace ClanService.RabbitMq;
 
-public class ClanServicePublisher
+public class ClanServicePublisher : IClanServicePublisher
 {
     private readonly IPublishEndpoint _publishEndpoint;
-    private readonly ILogger<ClanServicePublisher> _logger;
+    private readonly ILogger<IClanServicePublisher> _logger;
 
-    public ClanServicePublisher(IPublishEndpoint publishEndpoint, ILogger<ClanServicePublisher> logger)
+    public ClanServicePublisher(IPublishEndpoint publishEndpoint, ILogger<IClanServicePublisher> logger)
     {
         _publishEndpoint = publishEndpoint;
         _logger = logger;
