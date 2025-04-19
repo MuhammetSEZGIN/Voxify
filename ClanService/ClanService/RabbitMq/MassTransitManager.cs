@@ -18,11 +18,14 @@ public static class MassTransitManager
                      h.Username(rabbitMqOptions.UserName);
                      h.Password(rabbitMqOptions.Password);
                  });
-
+                    cfg.UseMessageRetry(r=>
+                    {
+                        r.Interval(5, TimeSpan.FromSeconds(10));
+                    });
                  cfg.ConfigureEndpoints(context);
              });
          });
-        services.AddScoped<IClanServicePublisher>();
+        services.AddScoped<IClanServicePublisher, ClanServicePublisher>();
         return services;
     }
 }

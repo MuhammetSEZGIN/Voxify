@@ -54,22 +54,23 @@ public class AuthService : IAuthService
         }
         return result;
     }
-    public async Task<string> LoginAsync(LoginModel model)
+    public async Task<LoginResult> LoginAsync(LoginModel model)
     {
         var user = await _userManager.FindByNameAsync(model.UserName!);
         if (user == null)
         {
             _logger.LogWarning("User not found with username: {0}", model.UserName);
-            return "Invalid login attempt";
+            return LoginResult.Failure("Invalid login attempt");
         }
         var checkedPassword = await _userManager.CheckPasswordAsync(user, model.Password!);
         if (!checkedPassword)
         {
             _logger.LogWarning("Invalid password for user: {0}", model.UserName);
-            return "Invalid password";
+            return return LoginResult.Failure("Invalid password");
         }
         _logger.LogInformation("User logged in: {0}", model.UserName);
-        return GenerateJSONWebToken(user);
+        string token= GenerateJSONWebToken(user);
+        return Loginresult.Success(token); 
     }
     public string GenerateJSONWebToken(ApplicationUser user)
     {

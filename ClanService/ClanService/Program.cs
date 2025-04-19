@@ -20,13 +20,12 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddRabbitMQServices(builder.Configuration);
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-builder.Services.AddScoped<IClanServicePublisher, ClanServicePublisher>();
 builder.Services.AddScoped<IChannelService, ChannelService>();
 builder.Services.AddScoped<IClanService, ClanService.Services.ClanService>();
 builder.Services.AddScoped<IRabbitMqService, RabbitMqService>();
 builder.Services.AddScoped<IClanMembershipService, ClanMembershipService>();
 builder.Services.AddScoped<IVoiceChannelService, VoiceChannelService>();
-
+builder.Services.AddScoped<IRoleService, RoleService>();
 
 builder.Services.AddScoped<IChannelRepository, ChannelRepository>();
 builder.Services.AddScoped<IClanRepository, ClanRepository>();

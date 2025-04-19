@@ -45,11 +45,11 @@ namespace IdentityService.Controllers
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
                 return BadRequest(new {Message="Invalid data", Errors=errors});
             }   
-            var token = await _authService.LoginAsync(model);
-            if(String.IsNullOrEmpty(token)){
-                return BadRequest("Invalid login attempt");
+            var loginResult = await _authService.LoginAsync(model);
+            if(!loginResult.Succeeded){
+                return BadRequest(loginResult.Errors);
             }
-            return Ok(new {Token=token});
+            return Ok(new {Token=loginResult.token});
 
         }
      
