@@ -1,25 +1,27 @@
 namespace IdentityService.DTOs; 
-class LoginResult
+public class LoginResult
 {
-    public bool Success { get; set; }
+    public bool Succeeded { get; set; }
     public string Token { get; set; }
     public string ErrorMessage { get; set; }
+    public string UserId { get; set; }
 
   private LoginResult(){}
 
-  public static LoginResult Success(string token)
+  public static LoginResult Success(string token, string userId)
   {
     return new LoginResult
     {
-      Success = true,
-      Token = token
+      Succeeded = true,
+      Token = token,
+      UserId = userId
     };
   }
     public static LoginResult Failure(string errorMessage)
     {
         return new LoginResult
         {
-        Success = false,
+        Succeeded = false,
         ErrorMessage = errorMessage
         };
     }

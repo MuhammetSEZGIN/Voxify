@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using IdentityService.Models;
 using IdentityService.Interfaces;
 using IdentityService.Messaging;
+using IdentityService.DTOs;
 namespace IdentityService.Services;
 
 public class AuthService : IAuthService
@@ -66,11 +67,11 @@ public class AuthService : IAuthService
         if (!checkedPassword)
         {
             _logger.LogWarning("Invalid password for user: {0}", model.UserName);
-            return return LoginResult.Failure("Invalid password");
+            return LoginResult.Failure("Invalid password");
         }
         _logger.LogInformation("User logged in: {0}", model.UserName);
         string token= GenerateJSONWebToken(user);
-        return Loginresult.Success(token); 
+        return LoginResult.Success(token, user.Id); 
     }
     public string GenerateJSONWebToken(ApplicationUser user)
     {

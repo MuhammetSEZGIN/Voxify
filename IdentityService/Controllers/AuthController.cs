@@ -47,9 +47,9 @@ namespace IdentityService.Controllers
             }   
             var loginResult = await _authService.LoginAsync(model);
             if(!loginResult.Succeeded){
-                return BadRequest(loginResult.Errors);
+                return BadRequest(loginResult.ErrorMessage);
             }
-            return Ok(new {Token=loginResult.token});
+            return Ok(new {Token=loginResult.Token});
 
         }
      
