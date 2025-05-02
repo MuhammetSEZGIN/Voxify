@@ -1,4 +1,5 @@
 using System;
+using System.Security.Authentication;
 using IdentityService.Messaging.RabbitMQ;
 using MassTransit;
 
@@ -15,12 +16,19 @@ namespace IdentityService.Messaging;
             {
                 x.UsingRabbitMq((context, cfg) =>
                 {
-                    cfg.Host(rabbitMqOptions.HostName, "/", h =>
+                   cfg.Host(rabbitMqOptions.Host, (ushort)rabbitMqOptions.Port, rabbitMqOptions.VirtualHost, h => 
                     {
                         h.Username(rabbitMqOptions.UserName);
                         h.Password(rabbitMqOptions.Password);
+                        // Use SSL if connecting via amqps (CloudAMQP default port 5671)
+                        if (rabbitMqOptions.Port == 5671)
+                        {
+                            h.UseSsl(s =>
+                            {
+                                s.Protocol = SslProtocols.Tls12;
+                            });
+                        }
                     });
-                   
                 });
             });
             

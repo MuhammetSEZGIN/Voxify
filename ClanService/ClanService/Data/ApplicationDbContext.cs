@@ -20,6 +20,8 @@ namespace ClanService.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            modelBuilder.HasDefaultSchema("clan");
+
             modelBuilder.Entity<Channel>().
                 HasOne(c => c.Clan).
                 WithMany(c => c.Channels).
@@ -40,6 +42,7 @@ namespace ClanService.Data
 
             modelBuilder.Entity<ClanInvitation>().
                 HasOne(ci => ci.Clan).
+                // Clan clanınvitationsı içermez ama withmany eklemekte sorun yok.
                 WithMany(c => c.ClanInvitations).
                 HasForeignKey(ci => ci.ClanId).
                 OnDelete(DeleteBehavior.Cascade);

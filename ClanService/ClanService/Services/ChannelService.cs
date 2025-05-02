@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using ClanService.RabbitMq;
 using ClanService.DTOs;
 using ClanService.Interfaces.Repositories;
-using ClanService.Interfaces.Services;
 
 namespace ClanService.Services
 {
@@ -14,15 +13,13 @@ namespace ClanService.Services
         private readonly IClanRepository _clanRepository;
         private readonly IChannelRepository _channelRepository;
         private readonly ILogger<ChannelService> _logger;
-        private readonly IClanServicePublisher _publisher;
 
         public ChannelService(
             IClanRepository clanRepository,
             IChannelRepository channelRepository,
-            ILogger<ChannelService> logger, 
-            IClanServicePublisher publisher)
+            ILogger<ChannelService> logger
+           )
         {
-            _publisher = publisher;
             _logger = logger;
             _clanRepository = clanRepository;
             _channelRepository = channelRepository;
@@ -82,10 +79,7 @@ namespace ClanService.Services
                 if (existing == null) return false;
                 
                 await _channelRepository.DeleteAsync(existing);
-                
-                await _publisher.PublishDeleteChannelMessageAsync(new ChannelDeletedMessage{
-                    ChannelId = channelId
-                });
+                _logger.LogInformation("Channel {ChannelId} deleted successfully", channelId);
                 return true;
             }
             catch (Exception e)

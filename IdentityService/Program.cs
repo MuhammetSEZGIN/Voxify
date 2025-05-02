@@ -79,6 +79,7 @@ var service= scope.ServiceProvider;
 try{
     var db = service.GetRequiredService<IdentityDbContext>();
     db.Database.CanConnect();
+    db.Database.EnsureCreated();
     db.Database.Migrate();
 
     var logger= service.GetRequiredService<ILogger<Program>>();

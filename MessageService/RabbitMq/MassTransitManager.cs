@@ -1,3 +1,4 @@
+using System.Security.Authentication;
 using MassTransit;
 namespace MessageService.RabbitMq;
 
@@ -14,10 +15,17 @@ public static class MassTransitManager
 
              x.UsingRabbitMq((context, cfg) =>
              {
-                 cfg.Host(rabbitMqOptions.HostName, "/", h =>
+                 cfg.Host(rabbitMqOptions.HostName,(ushort)rabbitMqOptions.Port, rabbitMqOptions.VirtualHost, h =>
                  {
                      h.Username(rabbitMqOptions.UserName);
                      h.Password(rabbitMqOptions.Password);
+                        if (rabbitMqOptions.Port == 5671)
+                        {
+                            h.UseSsl(s =>
+                            {
+                                s.Protocol = SslProtocols.Tls12;
+                            });
+                        }
                  });
 
                  cfg.ConfigureEndpoints(context);

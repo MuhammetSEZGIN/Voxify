@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using ClanService.RabbitMq;
 using ClanService.Interfaces.Repositories;
 using ClanService.Repositories;
-using ClanService.Interfaces.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,7 +16,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddRabbitMQServices(builder.Configuration);
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 builder.Services.AddScoped<IChannelService, ChannelService>();
@@ -33,6 +31,8 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IClanMembershipRepository, ClanMembershipRepository>();
 builder.Services.AddScoped<IClanInvitation, ClanInvitationRepository>();
 builder.Services.AddScoped<IVoiceChannelRepository, VoiceChannelRepository>();
+
+builder.Services.AddRabbitMQServices(builder.Configuration);
 
 
 builder.Logging.ClearProviders();
@@ -85,6 +85,8 @@ var service = scope.ServiceProvider;
 try
 {
     var db = service.GetRequiredService<ApplicationDbContext>();
+    db.Database.CanConnect();
+    db.Database.EnsureCreated();
     db.Database.Migrate();
     var logger = service.GetRequiredService<ILogger<Program>>();
     logger.LogInformation("Database Migrated");

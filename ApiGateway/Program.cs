@@ -15,31 +15,35 @@ else
     builder.Configuration.AddJsonFile("ocelot.json", optional: false, reloadOnChange: true);
 }
 
-builder.Configuration.AddJsonFile("swagger.json", optional: false, reloadOnChange: true);
 
-
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 builder.Services.AddCors();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
+            // token ın güvenlir bir anahtarla imzalanıp imzalanmadığını kontrol eder
             ValidateIssuerSigningKey = true,
+            // token imzansını doğrulamak için kullanılan anahtar
+            // bu anahtar, JWT oluşturulurken kullanılan anahtarla aynı olmalıdır
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.ASCII.GetBytes(builder.Configuration["JWT:Key"] ?? "YourTemporaryKeyHere12345678901234567890")),
+
+            /*
+                Token'ı kimin oluşturduğunu (Issuer) ve kimin için oluşturulduğunu (Audience) doğrulama adımlarını devre dışı bırakır.
+                Genellikle API Gateway senaryolarında bu kontroller aşağı akış servislerinde yapılır.
+            */
             ValidateIssuer = false,
             ValidateAudience = false,
+            //Token'ın süresinin dolup dolmadığını kontrol eder.
             ValidateLifetime = true,
+            // Token süresi kontrolünde sunucular arasındaki saat farklarına tolerans tanır 
+            // (burada sıfır olarak ayarlanmış, yani tolerans yok).
             ClockSkew = TimeSpan.Zero
         };
     });
 builder.Services.AddAuthorization();
 builder.Services.AddOcelot(builder.Configuration);
-builder.Services.AddSwaggerForOcelot(builder.Configuration);
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
