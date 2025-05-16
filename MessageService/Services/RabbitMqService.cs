@@ -9,12 +9,9 @@ namespace MessageService.Services;
 public class RabbitMqService : IRabbitMqService
 {
     private readonly ILogger<RabbitMqService> _logger;
-    private readonly ApplicationDbContext _context;
-
     private readonly IMessageRepository _messageRepository;
     private readonly IUserRepository _userRepository;
     public RabbitMqService(ILogger<RabbitMqService> logger,
-     ApplicationDbContext context,
       IMessageRepository repository,
       IUserRepository userRepository
       )
@@ -22,32 +19,30 @@ public class RabbitMqService : IRabbitMqService
         _userRepository = userRepository;
         _messageRepository = repository;
         _logger = logger;
-        _context = context;
     }
-    public async Task ConsumeUserInformation(UserUpdatedMessage message)
+    public async Task ConsumeUserInformation(UserUpdatedMessage userUpdatedMessage)
     {
-        var user = await _userRepository.GetByIdAsync(message.userId);
-        if (user == null)
-        {
-            await _userRepository.AddAsync(new User
-            {
-                Id = message.userId,
-                UserName = message.userName,
-                AvatarUrl = message.avatarUrl
-            });
-            _logger.LogInformation("New user added {0}", message.userName);
-        }
-        else
-        {
-            user.UserName = message.userName;
-            user.AvatarUrl = message.avatarUrl;
-            await _userRepository.UpdateAsync(user);
-
-            _logger.LogInformation("User updated {0}", message.userName);
-        }
         try
         {
-            await _context.SaveChangesAsync();
+            var user = await _userRepository.GetByIdAsync(userUpdatedMessage.userId);
+            if (user == null)
+            {
+                await _userRepository.AddAsync(new User
+                {
+                    Id = userUpdatedMessage.userId,
+                    UserName = userUpdatedMessage.userName,
+                    AvatarUrl = userUpdatedMessage.avatarUrl
+                });
+                _logger.LogInformation("New user added {0}", userUpdatedMessage.userName);
+            }
+            else
+            {
+                user.UserName = userUpdatedMessage.userName;
+                user.AvatarUrl = userUpdatedMessage.avatarUrl;
+                await _userRepository.UpdateAsync(userUpdatedMessage.userId,user);
+
+                _logger.LogInformation("User updated {0}", userUpdatedMessage.userName);
+            }
         }
         catch (Exception e)
         {
@@ -64,7 +59,7 @@ public class RabbitMqService : IRabbitMqService
         else
         {
             _logger.LogInformation("No messages found for channel {0}", message.ChannelId);
-        }   
+        }
     }
 
 }

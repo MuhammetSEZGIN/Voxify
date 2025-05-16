@@ -47,6 +47,7 @@ builder.Services.AddAuthentication(options=>
         ClockSkew = TimeSpan.FromMinutes(5)
     };
 });
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -61,9 +62,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{    
+if(app.Environment.IsDevelopment()){
     app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI();

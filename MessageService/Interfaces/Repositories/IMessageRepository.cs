@@ -1,12 +1,14 @@
 using System;
+using MessageService.DTOs;
 using MessageService.Models;
+using MongoDB.Bson;
 
 namespace MessageService.Interfaces.Repositories.IUserRepository;
 
-public interface IMessageRepository : IRepository<Message,Guid>
+public interface IMessageRepository : IRepository<Message, ObjectId>
 {
-    Task<IEnumerable<Message>> GetMessagesInChannelAsync(Guid channelId, int limit, int page);
-    Task<IEnumerable<Message>> SearchInChannelAsync(Guid channelId, string searchText, int limit, int page);
-    Task<bool> DeleteMessagesOfChannelByChannelId(Guid channelId);
-
+    Task<IEnumerable<MessageDto>> GetMessagesInChannelAsync(string channelId, int limit, int page);
+    Task<IEnumerable<MessageDto>> SearchInChannelAsync(string channelId, string searchText, int limit, int page);
+    Task<bool> DeleteMessagesOfChannelByChannelId(string channelId);
+    Task<bool> DeleteMessagesByMessageId(ObjectId messageId);
 }

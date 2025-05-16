@@ -47,14 +47,6 @@ builder.Services.AddOcelot(builder.Configuration);
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwaggerForOcelotUI(options =>
-    {
-        options.PathToSwaggerGenerator = "/swagger/docs";
-    });
-}
-
 app.UseCors(builder => builder
     .AllowAnyOrigin()
     .AllowAnyMethod()

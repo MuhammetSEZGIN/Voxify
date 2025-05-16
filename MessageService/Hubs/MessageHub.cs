@@ -4,6 +4,7 @@ using MessageService.Interfaces.Services;
 using MessageService.Models;
 using MessageService.Services;
 using Microsoft.AspNetCore.SignalR;
+using MongoDB.Bson;
 
 namespace MessageService.Hubs;
 
@@ -25,7 +26,7 @@ public class MessageHub : Hub
         _messageService = messageService;
         _logger = logger;
     }
-    public async Task SendMessage(Guid channelId, string senderId, string userName, string message)
+    public async Task SendMessage(string channelId, string senderId, string userName, string message)
     {
         if (string.IsNullOrWhiteSpace(message))
         {
@@ -35,7 +36,7 @@ public class MessageHub : Hub
 
         var messageDto = new MessageDto
         {
-            Id = Guid.NewGuid(),
+            Id = ObjectId.GenerateNewId(),
             UserName = userName,
             ChannelId = channelId,
             SenderId = senderId,
@@ -69,40 +70,41 @@ public class MessageHub : Hub
 
     }
 
-    public async Task UpdateMessage(Guid messageId, string newContent)
+    public async Task UpdateMessage(ObjectId messageId, string newContent)
     {
-        try
+        if (string.IsNullOrEmpty(newContent))
         {
-            if (string.IsNullOrEmpty(newContent))
+            _logger.LogWarning("Empty content in UpdateMessage for {MessageId}", messageId);
+            return;
+        }
+        await _backgroundTaskQueue.QueueBackgroundWorkItemAsync(async token =>
+        {
+            try
             {
-                _logger.LogWarning("Empty content in UpdateMessage for {MessageId}", messageId);
-                return;
+                var result = await _messageService.UpdateMessage(messageId, newContent);
+                if (result == null)
+                {
+                    _logger.LogWarning("Message {MessageId} not found for update", messageId);
+                    return;
+                }
+
+                var messageDto = new MessageDto
+                {
+                    Id = result.Data.Id,
+                    ChannelId = result.Data.ChannelId,
+                    SenderId = result.Data.SenderId,
+                    Text = result.Data.Text,
+                    CreatedAt = result.Data.CreatedAt
+                };
+                await Clients.Group(result.Data.ChannelId.ToString()).SendAsync("MessageUpdated", messageDto);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error updating message {MessageId}", messageId);
+                await Clients.Caller.SendAsync("MessageUpdateFailed", messageId);
             }
 
-            var result = await _messageService.UpdateMessage(messageId, newContent);
-            if (result == null)
-            {
-                _logger.LogWarning("Message {MessageId} not found for update", messageId);
-                return;
-            }
-
-            //mapper can be added later
-            var messageDto = new MessageDto
-            {
-                Id = result.Data.Id,
-                UserName = result.Data.User.UserName,
-                ChannelId = result.Data.ChannelId,
-                SenderId = result.Data.SenderId,
-                Text = result.Data.Text,
-                CreatedAt = result.Data.CreatedAt
-            };
-            await Clients.Group(result.Data.ChannelId.ToString()).SendAsync("MessageUpdated", messageDto);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Error updating message {MessageId}", messageId);
-            await Clients.Caller.SendAsync("MessageUpdateFailed", messageId);
-        }
+        });
     }
 
     public async Task JoinChannel(Guid channelId)

@@ -1,15 +1,15 @@
 using System;
-using System.ComponentModel.DataAnnotations;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace MessageService.Models;
 
+[BsonIgnoreExtraElements]
 public class User
 {
-    [Key]
+    [BsonId]
     public string Id { get; set; }
     public string UserName { get; set; } 
-    public string Email { get; set; }
     public string AvatarUrl { get; set; }
-    public List<Message> Messages { get; set; }
 
 }

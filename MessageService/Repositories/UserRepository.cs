@@ -8,7 +8,10 @@ namespace MessageService.Repositories;
 
 public class UserRepository : Repository<User, string>, IUserRepository
 {
-    public UserRepository(ApplicationDbContext context) : base(context)
+    IMongoDbContext _context;
+    public UserRepository(IMongoDbContext context, string collectionName) : base(context, collectionName)
     {
+        _context = context;
     }
+   
 }

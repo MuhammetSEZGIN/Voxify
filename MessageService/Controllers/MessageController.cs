@@ -1,9 +1,11 @@
 using MessageService.DTOs;
 using MessageService.Interfaces;
 using MessageService.Interfaces.Services;
+using MessageService.Models;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using MongoDB.Bson;
 
 namespace MessageService.Controllers
 {
@@ -23,7 +25,7 @@ namespace MessageService.Controllers
 
         [HttpGet]
        public async Task<IActionResult> GetMessagesInChannelAsync(
-            [FromQuery] Guid channelId, 
+            [FromQuery] string channelId, 
             [FromQuery] int limit = 20, 
             [FromQuery] int page = 1)
         {
@@ -37,9 +39,9 @@ namespace MessageService.Controllers
             var messageDtos = result.Data.Select(m => new MessageDto 
             {
                 Id = m.Id,
-                UserName = m.User?.UserName ?? "Unknown",
+                UserName = m.SenderId ?? "Unknown",
                 ChannelId = m.ChannelId,
-                AvatarUrl = m.User?.AvatarUrl ?? string.Empty,
+                AvatarUrl = m.SenderId ?? string.Empty,
                 SenderId = m.SenderId,
                 Text = m.Text,
                 CreatedAt = m.CreatedAt
@@ -49,7 +51,7 @@ namespace MessageService.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> DeleteMessageAsync(Guid messageId)
+        public async Task<IActionResult> DeleteMessageAsync(ObjectId messageId)
         {
             var result = await _messageService.DeleteMessageAsync(messageId);
             
@@ -60,6 +62,17 @@ namespace MessageService.Controllers
             
             return Ok(new { message = "Message deleted successfully" });
         }
-
+        [HttpPost]
+        public async Task<IActionResult> SendMessageAsync([FromBody] Message message)
+        {
+            var result = await _messageService.CreateMessage(message);
+            
+            if (!result.IsSuccess)
+            {
+                return StatusCode(result.StatusCode, new { message = result.Message });
+            }
+            
+            return Ok(new { message = "Message sent successfully" });
+        }
     }
 }

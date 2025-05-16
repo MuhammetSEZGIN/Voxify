@@ -1,19 +1,23 @@
 using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 namespace MessageService.Models;
 
+[BsonIgnoreExtraElements]
 public class Message
 {
-    [Key]
-    public Guid Id { get; set; }
+
+    [BsonId]
+    [BsonRepresentation(BsonType.ObjectId)]
+    public ObjectId Id { get; set; }
+    [BsonRepresentation(BsonType.String)]
+    [BsonElement("user_id")]
     public string SenderId { get; set; }
-    [ForeignKey("SenderId")]
-    public User User { get; set; }
     public string Text { get; set; }
-    public DateTime CreatedAt { get; set; }= DateTime.UtcNow;
-    public Guid ChannelId { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    [BsonRepresentation(BsonType.String)]
+    public string ChannelId { get; set; }
+    [BsonRepresentation(BsonType.String)]
     public string RecipientId { get; set; }
 
 }
