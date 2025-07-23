@@ -9,12 +9,12 @@ namespace IdentityService.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
-                
+
         public UserController(IUserService userService)
         {
             _userService = userService;
         }
-                
+
         [HttpPut("update")]
         public async Task<IActionResult> UpdateUser([FromBody] UpdateUserModel model)
         {
@@ -27,7 +27,7 @@ namespace IdentityService.Controllers
         }
 
         [HttpDelete("delete")]
-        public async Task<IActionResult> DeleteUser([FromHeader]  string id)
+        public async Task<IActionResult> DeleteUser([FromHeader] string id)
         {
             var result = await _userService.DeleteUserAsync(id);
             if (result.Succeeded)

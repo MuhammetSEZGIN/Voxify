@@ -6,6 +6,7 @@ using IdentityService.Models;
 using IdentityService.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,11 +14,32 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<IdentityDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+);
+builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+builder
+    .Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+    {
+        options.Password.RequireDigit = true;
+        options.Password.RequiredLength = 6;
+        options.Password.RequireNonAlphanumeric = false;
+        options.Password.RequireUppercase = true;
+        options.Password.RequireLowercase = true;
+        options.User.RequireUniqueEmail = true;
+        options.SignIn.RequireConfirmedEmail = true;
+        options.SignIn.RequireConfirmedPhoneNumber = false;
+        options.SignIn.RequireConfirmedAccount = false;
+    })
     .AddEntityFrameworkStores<IdentityDbContext>()
     .AddDefaultTokenProviders();
+
+builder.Services.Configure<IdentityOptions>(Options =>
+{
+    Options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+    Options.Lockout.MaxFailedAccessAttempts = 5;
+    Options.Lockout.AllowedForNewUsers = true;
+});
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
@@ -28,41 +50,47 @@ builder.Services.AddRabbitMQProducer(builder.Configuration);
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 
-builder.Services.AddAuthentication(options=>
-{
-    options.DefaultAuthenticateScheme = "JwtBearer"; 
-    options.DefaultChallengeScheme = "JwtBearer";
-})
-.AddJwtBearer("JwtBearer", jwtBearerOptions =>
-{
-    jwtBearerOptions.TokenValidationParameters = new TokenValidationParameters
+builder
+    .Services.AddAuthentication(options =>
     {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]!)),
-        ValidateIssuer = true,
-        ValidIssuer = builder.Configuration["JWT:Issuer"],
-        ValidateAudience = true,
-        ValidAudience = builder.Configuration["JWT:Audience"],
-        ValidateLifetime = true,
-        ClockSkew = TimeSpan.FromMinutes(5)
-    };
-});
+        options.DefaultAuthenticateScheme = "JwtBearer";
+        options.DefaultChallengeScheme = "JwtBearer";
+    })
+    .AddJwtBearer(
+        "JwtBearer",
+        jwtBearerOptions =>
+        {
+            jwtBearerOptions.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]!)
+                ),
+                ValidateIssuer = true,
+                ValidIssuer = builder.Configuration["JWT:Issuer"],
+                ValidateAudience = true,
+                ValidAudience = builder.Configuration["JWT:Audience"],
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.FromMinutes(5),
+            };
+        }
+    );
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
-    {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
+    options.AddPolicy(
+        "AllowAll",
+        policy =>
+        {
+            policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+        }
+    );
 });
-
-
 
 var app = builder.Build();
 
-if(app.Environment.IsDevelopment()){
+if (app.Environment.IsDevelopment())
+{
     app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI();
@@ -74,18 +102,20 @@ app.UseAuthorization();
 app.MapControllers();
 
 using var scope = app.Services.CreateScope();
-var service= scope.ServiceProvider;
-try{
+var service = scope.ServiceProvider;
+try
+{
     var db = service.GetRequiredService<IdentityDbContext>();
     db.Database.CanConnect();
     db.Database.EnsureCreated();
     db.Database.Migrate();
 
-    var logger= service.GetRequiredService<ILogger<Program>>();
+    var logger = service.GetRequiredService<ILogger<Program>>();
     logger.LogInformation("Database Migrated");
 }
-catch{
-    var logger= service.GetRequiredService<ILogger<Program>>();
+catch
+{
+    var logger = service.GetRequiredService<ILogger<Program>>();
     logger.LogInformation("An error occured while migrating the database");
 }
 app.Run();

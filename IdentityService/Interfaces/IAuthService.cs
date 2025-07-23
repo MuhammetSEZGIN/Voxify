@@ -1,12 +1,15 @@
 using System;
+using IdentityService.DTOs;
 using IdentityService.Models;
 using Microsoft.AspNetCore.Identity;
-using IdentityService.DTOs;
+
 namespace IdentityService.Interfaces;
 
 public interface IAuthService
 {
-    Task<IdentityResult> RegisterAsync(RegisterModel model);
-    Task<LoginResult> LoginAsync(LoginModel model);
-    string GenerateJSONWebToken(ApplicationUser user);
+    Task<ApiResponse<RegisterModel>> RegisterAsync(RegisterModel model);
+    Task<ApiResponse<string>> LoginAsync(LoginRequestModel model);
+    Task<ApiResponse<RefreshTokenResultDto>> RefreshTokenAsync(RefreshTokenDto model);
+    Task<ApiResponse<List<UserSessionsResultDto>>> GetMySessionsByUserId(string userId);
+    Task<ApiResponse<string>> LogoutSessionAsync(int sessionId);
 }

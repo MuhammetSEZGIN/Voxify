@@ -11,9 +11,10 @@ namespace IdentityService.Services
         private readonly ILogger<RoleService> _logger;
 
         public RoleService(
-            RoleManager<IdentityRole> roleManager, 
+            RoleManager<IdentityRole> roleManager,
             UserManager<ApplicationUser> userManager,
-            ILogger<RoleService> logger)
+            ILogger<RoleService> logger
+        )
         {
             _roleManager = roleManager;
             _userManager = userManager;
@@ -25,7 +26,9 @@ namespace IdentityService.Services
             if (await _roleManager.RoleExistsAsync(roleName))
             {
                 _logger.LogWarning("CreateRoleAsync: Role '{Role}' already exists", roleName);
-                return IdentityResult.Failed(new IdentityError { Description = "Role already exists." });
+                return IdentityResult.Failed(
+                    new IdentityError { Description = "Role already exists." }
+                );
             }
 
             return await _roleManager.CreateAsync(new IdentityRole(roleName));
@@ -48,14 +51,21 @@ namespace IdentityService.Services
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
-                _logger.LogWarning("AssignUserToRoleAsync: User with ID '{UserId}' not found", userId);
+                _logger.LogWarning(
+                    "AssignUserToRoleAsync: User with ID '{UserId}' not found",
+                    userId
+                );
                 return IdentityResult.Failed(new IdentityError { Description = "User not found." });
             }
-            
+
             // Check if user is already in the role.
             if (await _userManager.IsInRoleAsync(user, roleName))
             {
-                _logger.LogWarning("AssignUserToRoleAsync: User '{UserId}' is already in role '{Role}'", userId, roleName);
+                _logger.LogWarning(
+                    "AssignUserToRoleAsync: User '{UserId}' is already in role '{Role}'",
+                    userId,
+                    roleName
+                );
                 return IdentityResult.Success;
             }
 

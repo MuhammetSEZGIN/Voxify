@@ -4,7 +4,6 @@ using MassTransit;
 
 namespace IdentityService.Messaging;
 
-
 public class IdentityProducer
 {
     private readonly IPublishEndpoint _publishEndpoint;
@@ -16,18 +15,24 @@ public class IdentityProducer
         _logger = logger;
     }
 
-    public async Task PublishUserUpdatedMessageAsync(string userName, string avatarUrl, string userId)
+    public async Task PublishUserUpdatedMessageAsync(
+        string userName,
+        string avatarUrl,
+        string userId
+    )
     {
         var message = new UserUpdatedMessage
         {
             userId = userId,
             userName = userName,
-            AvatarUrl = avatarUrl
+            AvatarUrl = avatarUrl,
         };
 
-        _logger.LogInformation("Publishing UserUpdatedMessage for user: {userName}, evatarUrl: {avatarUrl}", userName, avatarUrl);
+        _logger.LogInformation(
+            "Publishing UserUpdatedMessage for user: {userName}, avatarUrl: {avatarUrl}",
+            userName,
+            avatarUrl
+        );
         await _publishEndpoint.Publish(message);
     }
 }
-
-
