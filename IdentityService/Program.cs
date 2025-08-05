@@ -1,121 +1,50 @@
-using System.Text;
-using IdentityService.Data;
-using IdentityService.Interfaces;
+using IdentityService.Extensions;
 using IdentityService.Messaging;
-using IdentityService.Models;
-using IdentityService.Services;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
+using IdentityService.Middlewares;
+using Microsoft.AspNetCore.Builder;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
-builder.Services.AddSwaggerGen();
-builder.Services.AddDbContext<IdentityDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
-);
-builder.Services.AddHttpContextAccessor();
+// Service configurations
+builder.Services.AddApiConfiguration(); // ✅ This already includes Swagger
+builder.Services.AddDatabaseConfiguration(builder.Configuration);
+builder.Services.AddIdentityConfiguration();
+builder.Services.AddJwtAuthentication(builder.Configuration);
+builder.Services.AddCorsConfiguration();
+builder.Services.AddApplicationServices();
 
-builder
-    .Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
-    {
-        options.Password.RequireDigit = true;
-        options.Password.RequiredLength = 6;
-        options.Password.RequireNonAlphanumeric = false;
-        options.Password.RequireUppercase = true;
-        options.Password.RequireLowercase = true;
-        options.User.RequireUniqueEmail = true;
-        options.SignIn.RequireConfirmedEmail = true;
-        options.SignIn.RequireConfirmedPhoneNumber = false;
-        options.SignIn.RequireConfirmedAccount = false;
-    })
-    .AddEntityFrameworkStores<IdentityDbContext>()
-    .AddDefaultTokenProviders();
-
-builder.Services.Configure<IdentityOptions>(Options =>
-{
-    Options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
-    Options.Lockout.MaxFailedAccessAttempts = 5;
-    Options.Lockout.AllowedForNewUsers = true;
-});
-
+// Logging
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 
-builder.Services.AddScoped<IdentityProducer>();
+// RabbitMQ
 builder.Services.AddRabbitMQProducer(builder.Configuration);
-
-builder.Services.AddScoped<IAuthService, AuthService>();
-
-builder
-    .Services.AddAuthentication(options =>
-    {
-        options.DefaultAuthenticateScheme = "JwtBearer";
-        options.DefaultChallengeScheme = "JwtBearer";
-    })
-    .AddJwtBearer(
-        "JwtBearer",
-        jwtBearerOptions =>
-        {
-            jwtBearerOptions.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]!)
-                ),
-                ValidateIssuer = true,
-                ValidIssuer = builder.Configuration["JWT:Issuer"],
-                ValidateAudience = true,
-                ValidAudience = builder.Configuration["JWT:Audience"],
-                ValidateLifetime = true,
-                ClockSkew = TimeSpan.FromMinutes(5),
-            };
-        }
-    );
-
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy(
-        "AllowAll",
-        policy =>
-        {
-            policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
-        }
-    );
-});
 
 var app = builder.Build();
 
+// Middleware configuration
+app.UseMiddleware<PerformanceMiddleWare>();
+
+// Pipeline configuration
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Identity Service API V1");
+        c.RoutePrefix = string.Empty; // ✅ This should work now
+    });
 }
 
+app.UseHttpsRedirection();
 app.UseCors("AllowAll");
-
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-using var scope = app.Services.CreateScope();
-var service = scope.ServiceProvider;
-try
-{
-    var db = service.GetRequiredService<IdentityDbContext>();
-    db.Database.CanConnect();
-    db.Database.EnsureCreated();
-    db.Database.Migrate();
-
-    var logger = service.GetRequiredService<ILogger<Program>>();
-    logger.LogInformation("Database Migrated");
-}
-catch
-{
-    var logger = service.GetRequiredService<ILogger<Program>>();
-    logger.LogInformation("An error occured while migrating the database");
-}
+// Database migration
+await app.ApplyMigrationsAsync();
 app.Run();

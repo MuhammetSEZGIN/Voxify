@@ -7,9 +7,8 @@ namespace IdentityService.Interfaces;
 
 public interface IAuthService
 {
-    Task<ApiResponse<RegisterModel>> RegisterAsync(RegisterModel model);
-    Task<ApiResponse<string>> LoginAsync(LoginRequestModel model);
+    Task<ApiResponse<AuthResponseDto>> LoginAsync(LoginRequestModel model);
     Task<ApiResponse<RefreshTokenResultDto>> RefreshTokenAsync(RefreshTokenDto model);
     Task<ApiResponse<List<UserSessionsResultDto>>> GetMySessionsByUserId(string userId);
-    Task<ApiResponse<string>> LogoutSessionAsync(int sessionId);
+    Task<ApiResponse<string>> LogoutSessionAsync(string sessionId);
 }

@@ -8,10 +8,15 @@ public class ApiResponse<T>
     public bool IsSuccessfull { get; set; }
     public string Message { get; set; }
     public int StatusCode { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public T Data { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IEnumerable<string> Errors { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IDictionary<string, List<string>> ErrorsByField { get; set; }
 
     private ApiResponse() { }
 
@@ -29,6 +34,18 @@ public class ApiResponse<T>
             Errors = null,
         };
 
+    public static ApiResponse<T> Success(
+        string message = null,
+        int statusCode = (int)HttpStatusCode.OK
+    ) =>
+        new ApiResponse<T>
+        {
+            IsSuccessfull = true,
+            Message = message,
+            StatusCode = statusCode,
+            Errors = null,
+        };
+
     public static ApiResponse<T> Failed(
         string message,
         IEnumerable<string> errors = null,
@@ -39,7 +56,15 @@ public class ApiResponse<T>
             IsSuccessfull = false,
             Message = message,
             Errors = errors,
-            Data = default,
             StatusCode = statusCode,
+        };
+
+    public static ApiResponse<T> Failed(string message, IDictionary<string, List<string>> errors) =>
+        new ApiResponse<T>
+        {
+            IsSuccessfull = false,
+            Message = message,
+            ErrorsByField = errors,
+            StatusCode = (int)HttpStatusCode.BadRequest,
         };
 }

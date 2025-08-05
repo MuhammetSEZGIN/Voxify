@@ -1,9 +1,12 @@
 using System.Net;
 using System.Security.Claims;
+using IdentityService.Attributes;
 using IdentityService.DTOs;
+using IdentityService.Examples;
 using IdentityService.Interfaces;
 using IdentityService.Models;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Filters;
 
 namespace IdentityService.Controllers
 {
@@ -12,40 +15,67 @@ namespace IdentityService.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly IEmailService _emailService;
+        private readonly IRegisterService _registerService;
 
-        public AuthController(IAuthService authService)
+        public AuthController(
+            IAuthService authService,
+            IEmailService emailService,
+            IRegisterService registerService
+        )
         {
             _authService = authService;
+            _emailService = emailService;
+            _registerService = registerService;
         }
 
+        /// <summary>
+        /// Registers a new user.
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///     POST /Todo
+        ///     {
+        ///        "id": 1,
+        ///        "name": "Item #1",
+        ///        "isComplete": true
+        ///     }
+        /// </remarks>
+        /// <param name="model">The registration model containing user details.</param>
         [HttpPost("register")]
+        [ValidateModel]
+        [SwaggerRequestExample(typeof(RegisterModel), typeof(RegisterRequestExample))]
         public async Task<IActionResult> Register([FromBody] RegisterModel model)
         {
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState
-                    .Values.SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage);
-                return BadRequest(new { Message = "Invalid data", Errors = errors });
-            }
-            var result = await _authService.RegisterAsync(model);
+            var result = await _registerService.RegisterAsync(model);
 
-            return new ObjectResult(result) { StatusCode = result.StatusCode };
+            var confirmationUrl = $"{Request.Scheme}://{Request.Host}/api/auth/confirm-email";
+            if (result.IsSuccessfull)
+            {
+                var emailResult = await _emailService.SendEmailConfirmationAsync(
+                    result.Data.UserId,
+                    confirmationUrl
+                );
+            }
+
+            return new ObjectResult(
+                new RegisterResponseDto
+                {
+                    UserId = result.Data.UserId,
+                    RefreshToken = result.Data.RefreshToken,
+                    Token = result.Data.Token,
+                }
+            )
+            {
+                StatusCode = result.StatusCode,
+            };
         }
 
         [HttpPost("login")]
+        [ValidateModel]
+        [SwaggerRequestExample(typeof(LoginRequestModel), typeof(LoginRequestExample))]
         public async Task<IActionResult> Login([FromBody] LoginRequestModel model)
         {
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState
-                    .Values.SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage);
-                return new ObjectResult(ApiResponse<string>.Failed("Invalid data", errors.ToList()))
-                {
-                    StatusCode = (int)HttpStatusCode.BadRequest,
-                };
-            }
             var loginResult = await _authService.LoginAsync(model);
             return new ObjectResult(loginResult) { StatusCode = loginResult.StatusCode };
         }
@@ -80,6 +110,27 @@ namespace IdentityService.Controllers
         {
             var result = await _authService.LogoutSessionAsync(sessionId);
             return new ObjectResult(result) { StatusCode = result.StatusCode };
+        }
+
+        [HttpPost("send-email-test")]
+        public async Task<IActionResult> SendEmailTest([FromBody] EmailRequestDto model)
+        {
+            var result = await _emailService.SendEmailAsync(
+                model.ToEmail,
+                model.Subject,
+                model.Content
+            );
+            return new ObjectResult(result) { StatusCode = result.StatusCode };
+        }
+
+        [HttpPost("confirm-email")]
+        public async Task<IActionResult> ConfirmEmail(
+            [FromQuery] string userId,
+            [FromQuery] string token
+        )
+        {
+            var result = await _emailService.ConfirmEmail(userId, token);
+            return new ObjectResult(result.Data) { StatusCode = result.StatusCode };
         }
     }
 }

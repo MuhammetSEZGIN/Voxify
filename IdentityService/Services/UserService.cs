@@ -7,6 +7,9 @@ using IdentityService.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
+/*
+    This file just for test purposes, it is not used in the project.
+ */
 namespace IdentityService.Services
 {
     public class UserService : IUserService
@@ -31,14 +34,16 @@ namespace IdentityService.Services
 
             user.UserName = model.UserName;
             user.Email = model.Email;
-            user.FullName = model.FullName;
             user.AvatarUrl = model.AvatarUrl;
 
             var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded)
             {
-                _logger.LogWarning("Update failed for user id {UserId}. Errors: {Errors}",
-                    model.Id, string.Join(", ", result.Errors.Select(e => e.Description)));
+                _logger.LogWarning(
+                    "Update failed for user id {UserId}. Errors: {Errors}",
+                    model.Id,
+                    string.Join(", ", result.Errors.Select(e => e.Description))
+                );
             }
             else
             {
@@ -52,7 +57,9 @@ namespace IdentityService.Services
             if (string.IsNullOrWhiteSpace(id))
             {
                 _logger.LogWarning("Delete failed: user id is empty");
-                return IdentityResult.Failed(new IdentityError { Description = "User id cannot be empty" });
+                return IdentityResult.Failed(
+                    new IdentityError { Description = "User id cannot be empty" }
+                );
             }
 
             var user = await _userManager.FindByIdAsync(id);
@@ -69,8 +76,11 @@ namespace IdentityService.Services
             }
             else
             {
-                _logger.LogWarning("Delete failed for user id {UserId}. Errors: {Errors}",
-                    id, string.Join(", ", result.Errors.Select(e => e.Description)));
+                _logger.LogWarning(
+                    "Delete failed for user id {UserId}. Errors: {Errors}",
+                    id,
+                    string.Join(", ", result.Errors.Select(e => e.Description))
+                );
             }
             return result;
         }

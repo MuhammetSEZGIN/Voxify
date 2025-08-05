@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IdentityService.Data;
 
-public class IdentityDbContext : IdentityDbContext<ApplicationUser>
+public class IdentityDbContext : IdentityUserContext<ApplicationUser>
 {
     public IdentityDbContext(DbContextOptions<IdentityDbContext> options)
         : base(options) { }
@@ -17,7 +17,6 @@ public class IdentityDbContext : IdentityDbContext<ApplicationUser>
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.HasDefaultSchema("identity");
-
         modelBuilder.Entity<UserRefreshToken>(entity =>
         {
             entity.HasIndex(x => x.RefreshToken).IsUnique();
