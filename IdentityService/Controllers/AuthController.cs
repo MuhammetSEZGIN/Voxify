@@ -50,6 +50,12 @@ namespace IdentityService.Controllers
             var result = await _registerService.RegisterAsync(model);
 
             var confirmationUrl = $"{Request.Scheme}://{Request.Host}/api/auth/confirm-email";
+
+            if (!result.IsSuccessfull)
+            {
+                return new ObjectResult(result) { StatusCode = result.StatusCode };
+            }
+
             if (result.IsSuccessfull)
             {
                 var emailResult = await _emailService.SendEmailConfirmationAsync(
@@ -105,8 +111,8 @@ namespace IdentityService.Controllers
             return new ObjectResult(result) { StatusCode = result.StatusCode };
         }
 
-        [HttpPost("logout-session/{sessionId:int}")]
-        public async Task<IActionResult> LogoutSession(int sessionId)
+        [HttpPost("logout-session/{sessionId}")]
+        public async Task<IActionResult> LogoutSession(string sessionId)
         {
             var result = await _authService.LogoutSessionAsync(sessionId);
             return new ObjectResult(result) { StatusCode = result.StatusCode };

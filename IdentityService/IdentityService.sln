@@ -5,8 +5,6 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityService", "IdentityService.csproj", "{F37D0603-73EE-F14C-807C-3198CDBAE5BA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityServiceTest", "IdentityServiceTest\IdentityServiceTest.csproj", "{BCD26E56-F7FC-4768-9D92-9D0A61614E27}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,18 +27,6 @@ Global
 		{F37D0603-73EE-F14C-807C-3198CDBAE5BA}.Release|x64.Build.0 = Release|Any CPU
 		{F37D0603-73EE-F14C-807C-3198CDBAE5BA}.Release|x86.ActiveCfg = Release|Any CPU
 		{F37D0603-73EE-F14C-807C-3198CDBAE5BA}.Release|x86.Build.0 = Release|Any CPU
-		{BCD26E56-F7FC-4768-9D92-9D0A61614E27}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BCD26E56-F7FC-4768-9D92-9D0A61614E27}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BCD26E56-F7FC-4768-9D92-9D0A61614E27}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{BCD26E56-F7FC-4768-9D92-9D0A61614E27}.Debug|x64.Build.0 = Debug|Any CPU
-		{BCD26E56-F7FC-4768-9D92-9D0A61614E27}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{BCD26E56-F7FC-4768-9D92-9D0A61614E27}.Debug|x86.Build.0 = Debug|Any CPU
-		{BCD26E56-F7FC-4768-9D92-9D0A61614E27}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BCD26E56-F7FC-4768-9D92-9D0A61614E27}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BCD26E56-F7FC-4768-9D92-9D0A61614E27}.Release|x64.ActiveCfg = Release|Any CPU
-		{BCD26E56-F7FC-4768-9D92-9D0A61614E27}.Release|x64.Build.0 = Release|Any CPU
-		{BCD26E56-F7FC-4768-9D92-9D0A61614E27}.Release|x86.ActiveCfg = Release|Any CPU
-		{BCD26E56-F7FC-4768-9D92-9D0A61614E27}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

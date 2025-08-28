@@ -55,9 +55,7 @@ public class RegisterService : IRegisterService
             {
                 _logger.LogWarning("User registration failed: {Errors}", result.Errors);
                 return ApiResponse<RegisterResponseDto>.Failed(
-                    "User registration failed",
-                    result.Errors.Select(e => e.Description),
-                    (int)HttpStatusCode.BadRequest
+                    string.Join("; ", result.Errors.Select(e => e.Description))
                 );
             }
             await _messagePublisher.PublishUserUpdatedMessageAsync(

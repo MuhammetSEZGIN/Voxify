@@ -11,15 +11,17 @@ public class ValidateModelAttribute : ActionFilterAttribute
     {
         if (!context.ModelState.IsValid)
         {
-            var errors = context
-                .ModelState.Where(x => x.Value.Errors.Count > 0)
-                .ToDictionary(
-                    kvp => kvp.Key,
-                    kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToList()
-                );
+            var errors = string.Join(
+                "; ",
+                context
+                    .ModelState.Where(x => x.Value.Errors.Count > 0)
+                    .SelectMany(x => x.Value.Errors)
+                    .Select(e => e.ErrorMessage)
+            );
 
-            var result = ApiResponse<object>.Failed("Invalid data", errors);
+            var result = ApiResponse<object>.Failed(errors);
             context.Result = new ObjectResult(result) { StatusCode = 400 };
+            Console.WriteLine($"Model validation failed: {errors}");
         }
     }
 }
