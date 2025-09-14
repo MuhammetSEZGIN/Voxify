@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityService", "IdentityService.csproj", "{F37D0603-73EE-F14C-807C-3198CDBAE5BA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityService", "IdentityService\IdentityService.csproj", "{F37D0603-73EE-F14C-807C-3198CDBAE5BA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityServiceTests", "IdentityServiceTests\IdentityServiceTests.csproj", "{9045959F-2821-4451-BDD4-820599EC27B4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,18 @@ Global
 		{F37D0603-73EE-F14C-807C-3198CDBAE5BA}.Release|x64.Build.0 = Release|Any CPU
 		{F37D0603-73EE-F14C-807C-3198CDBAE5BA}.Release|x86.ActiveCfg = Release|Any CPU
 		{F37D0603-73EE-F14C-807C-3198CDBAE5BA}.Release|x86.Build.0 = Release|Any CPU
+		{9045959F-2821-4451-BDD4-820599EC27B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9045959F-2821-4451-BDD4-820599EC27B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9045959F-2821-4451-BDD4-820599EC27B4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9045959F-2821-4451-BDD4-820599EC27B4}.Debug|x64.Build.0 = Debug|Any CPU
+		{9045959F-2821-4451-BDD4-820599EC27B4}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9045959F-2821-4451-BDD4-820599EC27B4}.Debug|x86.Build.0 = Debug|Any CPU
+		{9045959F-2821-4451-BDD4-820599EC27B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9045959F-2821-4451-BDD4-820599EC27B4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9045959F-2821-4451-BDD4-820599EC27B4}.Release|x64.ActiveCfg = Release|Any CPU
+		{9045959F-2821-4451-BDD4-820599EC27B4}.Release|x64.Build.0 = Release|Any CPU
+		{9045959F-2821-4451-BDD4-820599EC27B4}.Release|x86.ActiveCfg = Release|Any CPU
+		{9045959F-2821-4451-BDD4-820599EC27B4}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
