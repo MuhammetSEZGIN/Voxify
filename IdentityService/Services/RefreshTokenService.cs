@@ -1,8 +1,11 @@
 using System.Net;
 using IdentityService.Data;
 using IdentityService.DTOs;
+using IdentityService.Extensions;
 using IdentityService.Interfaces;
 using IdentityService.Models;
+using IdentityService.Utilities;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,16 +14,19 @@ namespace IdentityService.Services;
 public class RefreshTokenService : IRefreshTokenService
 {
     private readonly IdentityDbContext _context;
+    private readonly IConfiguration _config;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ILogger<RefreshTokenService> _logger;
 
     public RefreshTokenService(
+        IConfiguration config,
         IdentityDbContext context,
         UserManager<ApplicationUser> userManager,
         ILogger<RefreshTokenService> logger
     )
     {
         _context = context;
+        _config = config;
         _userManager = userManager;
         _logger = logger;
     }
@@ -52,23 +58,34 @@ public class RefreshTokenService : IRefreshTokenService
                     (int)HttpStatusCode.NotFound
                 );
             }
-            await CleanupExpiredUserTokensAsync(user.Id);
-            // Aktif token sayısını kontrol et (max 5 cihaz)
-            var activeTokenCount = await _context.UserRefreshTokens.CountAsync(rt =>
-                rt.UserId == userId && rt.RefreshTokenExpiryTime > DateTime.UtcNow
-            );
+            // Kullanıcının tüm tokenlerini al
+            var userTokens = await _context
+                .UserRefreshTokens.Where(rt => rt.UserId == userId)
+                .ToListAsync();
 
-            if (activeTokenCount >= 5)
+            // Süresi dolmuş tokenleri temizle
+            var expiredTokens = userTokens
+                .Where(rt => rt.RefreshTokenExpiryTime < DateTime.UtcNow)
+                .ToList();
+            if (expiredTokens.Any())
+            {
+                _context.UserRefreshTokens.RemoveRange(expiredTokens);
+            }
+
+            var activeTokens = userTokens
+                .Where(rt => rt.RefreshTokenExpiryTime >= DateTime.UtcNow)
+                .ToList();
+            if (activeTokens.Count >= 5)
             {
                 // En eski tokeni sil
-                var oldestToken = await _context
-                    .UserRefreshTokens.Where(rt =>
-                        rt.UserId == userId && rt.RefreshTokenExpiryTime < DateTime.UtcNow
-                        || rt.DeviceInfo == deviceInfo
-                    )
-                    .FirstAsync();
+                var tokenToRemove =
+                    activeTokens.FirstOrDefault(x => x.DeviceInfo == deviceInfo)
+                    ?? activeTokens.First();
 
-                _context.UserRefreshTokens.Remove(oldestToken);
+                if (tokenToRemove != null)
+                {
+                    _context.UserRefreshTokens.Remove(tokenToRemove);
+                }
             }
 
             // Yeni token oluştur
@@ -85,10 +102,13 @@ public class RefreshTokenService : IRefreshTokenService
 
             _context.UserRefreshTokens.Add(refreshToken);
             await _context.SaveChangesAsync();
+            // Yeni access token oluştur
+            var accessToken = _config.GenerateJwtToken(user);
+
             return ApiResponse<RefreshTokenResultDto>.Success(
                 new RefreshTokenResultDto
                 {
-                    AccessToken = refreshToken.RefreshToken,
+                    AccessToken = accessToken,
                     RefreshToken = refreshToken.RefreshToken,
                 },
                 "Refresh token created successfully."

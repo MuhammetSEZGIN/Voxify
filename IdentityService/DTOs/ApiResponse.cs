@@ -78,5 +78,4 @@ public class ApiResponse<T>
             Message = message,
             StatusCode = statusCode,
         };
-
 }

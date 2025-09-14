@@ -2,8 +2,10 @@
 using System.Linq;
 using System.Threading.Tasks;
 using IdentityService.DTOs;
+using IdentityService.Extensions;
 using IdentityService.Interfaces;
 using IdentityService.Models;
+using IdentityService.Utilities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
@@ -15,12 +17,21 @@ namespace IdentityService.Services
     public class UserService : IUserService
     {
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IEmailService _mailService;
         private readonly ILogger<UserService> _logger;
+        private readonly IConfiguration _config;
 
-        public UserService(UserManager<ApplicationUser> userManager, ILogger<UserService> logger)
+        public UserService(
+            UserManager<ApplicationUser> userManager,
+            IEmailService mailService,
+            ILogger<UserService> logger,
+            IConfiguration config
+        )
         {
             _userManager = userManager;
+            _mailService = mailService;
             _logger = logger;
+            _config = config;
         }
 
         public async Task<IdentityResult> UpdateUserAsync(UpdateUserModel model)
@@ -33,8 +44,12 @@ namespace IdentityService.Services
             }
 
             user.UserName = model.UserName;
-            user.Email = model.Email;
             user.AvatarUrl = model.AvatarUrl;
+
+            if (user.Email != model.Email)
+            {
+                user.EmailConfirmed = false; // Email değiştiyse onay durumunu sıfırla
+            }
 
             var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded)
@@ -45,10 +60,10 @@ namespace IdentityService.Services
                     string.Join(", ", result.Errors.Select(e => e.Description))
                 );
             }
-            else
-            {
-                _logger.LogInformation("Successfully updated user {UserId}", model.Id);
-            }
+
+            _config.GenerateJwtToken(user);
+
+            _logger.LogInformation("Successfully updated user {UserId}", model.Id);
             return result;
         }
 

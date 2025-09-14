@@ -31,7 +31,6 @@
     <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="9.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Extensions/" />
     <Folder Include="Migrations\" />
     <Folder Include="Properties\Messaging\" />
     <Folder Include="seq-data/" />

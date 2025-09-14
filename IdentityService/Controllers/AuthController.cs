@@ -49,12 +49,12 @@ namespace IdentityService.Controllers
         {
             var result = await _registerService.RegisterAsync(model);
 
-            var confirmationUrl = $"{Request.Scheme}://{Request.Host}/api/auth/confirm-email";
-
             if (!result.IsSuccessfull)
             {
                 return new ObjectResult(result) { StatusCode = result.StatusCode };
             }
+
+            var confirmationUrl = $"{Request.Scheme}://{Request.Host}/api/Auth/confirm-email";
 
             if (result.IsSuccessfull)
             {
@@ -129,7 +129,7 @@ namespace IdentityService.Controllers
             return new ObjectResult(result) { StatusCode = result.StatusCode };
         }
 
-        [HttpPost("confirm-email")]
+        [HttpGet("confirm-email")]
         public async Task<IActionResult> ConfirmEmail(
             [FromQuery] string userId,
             [FromQuery] string token
@@ -137,6 +137,26 @@ namespace IdentityService.Controllers
         {
             var result = await _emailService.ConfirmEmail(userId, token);
             return new ObjectResult(result.Data) { StatusCode = result.StatusCode };
+        }
+
+        [HttpPost("resend-confirmation-email")]
+        public async Task<IActionResult> ResendConfirmationEmail([FromBody] string userId)
+        {
+            if (string.IsNullOrEmpty(userId))
+            {
+                return BadRequest("User ID is required.");
+            }
+            var confirmationUrl = $"{Request.Scheme}://{Request.Host}/api/Auth/confirm-email";
+
+            var emailResult = await _emailService.SendEmailConfirmationAsync(
+                userId,
+                confirmationUrl
+            );
+            if (!emailResult.IsSuccessfull)
+            {
+                return new ObjectResult(emailResult) { StatusCode = emailResult.StatusCode };
+            }
+            return new ObjectResult(emailResult) { StatusCode = emailResult.StatusCode };
         }
     }
 }

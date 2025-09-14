@@ -1,5 +1,6 @@
 using System.Net;
 using IdentityService.DTOs;
+using IdentityService.Extensions;
 using IdentityService.Interfaces;
 using IdentityService.Models;
 using IdentityService.Utilities;
@@ -121,7 +122,7 @@ public class EmailService : IEmailService
                     result.Errors.Select(e => e.Description)
                 );
             }
-            var accessToken = GenerateToken.GenerateJSONWebToken(user, _configuration);
+            var accessToken = _configuration.GenerateJwtToken(user);
             _logger.LogInformation("Email confirmed for user: {0}", user.UserName);
             var refreshTokenResult = await _refreshTokenService.CreateUserRefreshTokenAsync(
                 user.Id,
@@ -160,6 +161,15 @@ public class EmailService : IEmailService
             {
                 _logger.LogWarning("User not found with ID: {0}", userId);
                 return ApiResponse<object>.Failed("User not found");
+            }
+
+            if (user.EmailConfirmed)
+            {
+                _logger.LogInformation("Email already confirmed for user: {0}", user.UserName);
+                return ApiResponse<object>.Success(
+                    "Email already confirmed.",
+                    (int)HttpStatusCode.OK
+                );
             }
 
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);

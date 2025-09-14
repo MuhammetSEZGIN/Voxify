@@ -1,6 +1,7 @@
 using System.Net;
 using IdentityService.Data;
 using IdentityService.DTOs;
+using IdentityService.Extensions;
 using IdentityService.Interfaces;
 using IdentityService.Messaging;
 using IdentityService.Models;
@@ -73,7 +74,7 @@ public class AuthService : IAuthService
             }
 
             _logger.LogInformation("User logged in: {0}", model.UserName);
-            string token = GenerateToken.GenerateJSONWebToken(user, _config);
+            string token = _config.GenerateJwtToken(user);
             var refreshTokenResult = await _refreshTokenService.CreateUserRefreshTokenAsync(
                 user.Id,
                 model.DeviceInfo,
@@ -96,7 +97,7 @@ public class AuthService : IAuthService
             {
                 UserID = user.Id,
                 AccessToken = token,
-                RefreshToken = refreshTokenResult.Data.RefreshToken,
+                RefreshToken = refreshTokenResult.Data.ToString(),
             };
             return ApiResponse<AuthResponseDto>.Success(authResponse, "Login successful");
         }
@@ -127,7 +128,6 @@ public class AuthService : IAuthService
                 );
             }
 
-            string newToken = GenerateToken.GenerateJSONWebToken(refreshToken.User, _config);
             await _refreshTokenService.RevokeRefreshTokenAsync(model.RefreshToken);
 
             var newRefreshTokenResult = await _refreshTokenService.CreateUserRefreshTokenAsync(
