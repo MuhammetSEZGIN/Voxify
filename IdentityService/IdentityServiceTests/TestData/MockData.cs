@@ -1,16 +1,18 @@
+using IdentityService.Models;
+
 public static class MockData
 {
-    public static List<User> GetMockUsers()
+    public static List<ApplicationUser> GetMockUsers()
     {
-        return new List<User>
+        return new List<ApplicationUser>
         {
-            new User { Id = 1, Username = "testuser1", Password = "Password123", Email = "test1@example.com" },
-            new User { Id = 2, Username = "testuser2", Password = "Password123", Email = "test2@example.com" }
+            new ApplicationUser { Id = "1", UserName = "testuser1", PasswordHash = "Password123", Email = "test1@example.com" },
+            new ApplicationUser { Id = "2", UserName = "testuser2", PasswordHash = "Password123", Email = "test2@example.com" }
         };
     }
 
-    public static User GetMockUser()
+    public static ApplicationUser GetMockUser()
     {
-        return new User { Id = 1, Username = "testuser1", Password = "Password123", Email = "test1@example.com" };
+        return new ApplicationUser { Id = "1", UserName = "testuser1", PasswordHash = "Password123", Email = "test1@example.com" };
     }
 }

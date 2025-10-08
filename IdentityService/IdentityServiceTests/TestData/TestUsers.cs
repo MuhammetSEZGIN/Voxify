@@ -1,12 +1,14 @@
+using IdentityService.Models;
+
 public static class TestUsers
 {
-    public static List<User> GetTestUsers()
+    public static List<ApplicationUser> GetTestUsers()
     {
-        return new List<User>
+        return new List<ApplicationUser>
         {
-            new User { Id = 1, Username = "testuser1", Password = "Password123!", Email = "testuser1@example.com" },
-            new User { Id = 2, Username = "testuser2", Password = "Password123!", Email = "testuser2@example.com" },
-            new User { Id = 3, Username = "testuser3", Password = "Password123!", Email = "testuser3@example.com" }
+            new ApplicationUser { Id = "1", UserName = "testuser1", PasswordHash = "Password123!", Email = "testuser1@example.com" },
+            new ApplicationUser { Id = "2", UserName = "testuser2", PasswordHash = "Password123!", Email = "testuser2@example.com" },
+            new ApplicationUser { Id = "3", UserName = "testuser3", PasswordHash = "Password123!", Email = "testuser3@example.com" }
         };
     }
 }

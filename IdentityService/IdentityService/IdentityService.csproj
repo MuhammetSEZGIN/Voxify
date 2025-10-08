@@ -30,9 +30,4 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="8.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="9.0.0" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Migrations\" />
-    <Folder Include="Properties\Messaging\" />
-    <Folder Include="seq-data/" />
-  </ItemGroup>
 </Project>
