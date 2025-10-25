@@ -153,7 +153,7 @@ Mikroservisler arası iletişim için RabbitMQ kullanılmaktadır:
 
 ### Authentication & Authorization
 - **JWT Token** based authentication
-- Symmetric key encryption (HS256)
+- Symmetric key encryption (HS256) - Not: Production'da RS256 (asymmetric) önerilir
 - Token içinde: UserId, UserName, Roles
 - Token expiration ve refresh mekanizması
 - CORS policy yapılandırması
@@ -249,7 +249,7 @@ API Gateway üzerinden: `http://localhost:5000/swagger`
 
 MessageService'de rate limiting uygulanmıştır:
 - Fixed window limiter
-- 20 request per window
+- 20 requests per window
 - 429 Too Many Requests response
 
 ## Health Checks
@@ -281,7 +281,7 @@ dotnet test ClanService/ClanServiceTests/UnitTests/UnitTests.csproj
 
 ### Configuration
 - `appsettings.json` - Production ayarları
-- `appsettings.Development.json` - Development ayarları (git'e commit edilmez)
+- `appsettings.Development.json` - Development ayarları (güvenlik nedeniyle git'e commit edilmez - hassas bilgiler içerir)
 - Environment variables - Docker compose'da tanımlı
 
 ## Proje Yapısı Özeti
