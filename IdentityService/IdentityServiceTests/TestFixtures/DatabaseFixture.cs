@@ -1,7 +1,8 @@
-using IdentityService.Data;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore;
 using System;
+using IdentityService.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+
 public class DatabaseFixture : IDisposable
 {
     public IdentityDbContext Context { get; private set; }
@@ -11,7 +12,8 @@ public class DatabaseFixture : IDisposable
     {
         var services = new ServiceCollection();
         services.AddDbContext<IdentityDbContext>(options =>
-            options.UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString()));
+            options.UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+        );
         ServiceProvider = services.BuildServiceProvider();
         Context = ServiceProvider.GetRequiredService<IdentityDbContext>();
         Context.Database.EnsureCreated();

@@ -7,7 +7,7 @@ using Serilog;
 var builder = WebApplication.CreateBuilder(args);
 
 // Service configurations
-builder.Services.AddApiConfiguration(); // ✅ This already includes Swagger
+builder.Services.AddApiConfiguration(); //  This already includes Swagger
 builder.Services.AddDatabaseConfiguration(builder.Configuration);
 builder.Services.AddIdentityConfiguration();
 builder.Services.AddJwtAuthentication(builder.Configuration);
@@ -48,3 +48,6 @@ app.MapControllers();
 // Database migration
 await app.ApplyMigrationsAsync();
 app.Run();
+
+// Make Program accessible for integration tests
+public partial class Program { }

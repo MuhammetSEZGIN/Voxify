@@ -26,26 +26,31 @@ public class MongoDbContext : IMongoDbContext
     private void OnCreating()
     {
         // ChannelId + CreatedAt için bileşik indeks (sıralama optimizasyonu)
-        var compoundIndexDefinition = Builders<Message>.IndexKeys
-            .Ascending(m => m.ChannelId)
+        var compoundIndexDefinition = Builders<Message>
+            .IndexKeys.Ascending(m => m.ChannelId)
             .Descending(m => m.CreatedAt);
         var compoundIndexOptions = new CreateIndexOptions { Name = "ChannelId_CreatedAt_Index" };
-        var compoundIndexModel = new CreateIndexModel<Message>(compoundIndexDefinition, compoundIndexOptions);
+        var compoundIndexModel = new CreateIndexModel<Message>(
+            compoundIndexDefinition,
+            compoundIndexOptions
+        );
         Messages.Indexes.CreateOne(compoundIndexModel);
 
         // SenderId için indeks (kullanıcı bazlı sorgular için)
         var senderIndexKeysDefinition = Builders<Message>.IndexKeys.Ascending(m => m.SenderId);
         var senderIndexOptions = new CreateIndexOptions { Name = "SenderId_Index" };
-        var senderIndexModel = new CreateIndexModel<Message>(senderIndexKeysDefinition, senderIndexOptions);
+        var senderIndexModel = new CreateIndexModel<Message>(
+            senderIndexKeysDefinition,
+            senderIndexOptions
+        );
         Messages.Indexes.CreateOne(senderIndexModel);
     }
 
-
     public IMongoCollection<T> GetCollection<T>(string name)
     {
-         if (string.IsNullOrEmpty(name))
+        if (string.IsNullOrEmpty(name))
             throw new ArgumentException("Collection name cannot be null or empty", nameof(name));
-            
+
         return Database.GetCollection<T>(name);
     }
 }
