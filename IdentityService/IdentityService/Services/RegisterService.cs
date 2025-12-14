@@ -14,7 +14,7 @@ public class RegisterService : IRegisterService
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ILogger<RegisterService> _logger;
-    private readonly IdentityProducer _messagePublisher;
+    private readonly IIdentityProducer _messagePublisher;
     private readonly IRefreshTokenService _refreshTokenService;
     private readonly IIpAddressService _ipAddressService;
     private readonly IConfiguration _config;
@@ -23,7 +23,7 @@ public class RegisterService : IRegisterService
         UserManager<ApplicationUser> userManager,
         ILogger<RegisterService> logger,
         IIpAddressService ipAddressService,
-        IdentityProducer messagePublisher,
+        IIdentityProducer messagePublisher,
         IRefreshTokenService refreshTokenService,
         IConfiguration config
     )

@@ -1,10 +1,11 @@
 using System;
 using Identity.DTOs;
+using IdentityService.Interfaces;
 using MassTransit;
 
 namespace IdentityService.Messaging;
 
-public class IdentityProducer
+public class IdentityProducer :IIdentityProducer
 {
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly ILogger<IdentityProducer> _logger;

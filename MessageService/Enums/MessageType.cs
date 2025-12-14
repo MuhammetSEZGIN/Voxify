@@ -4,5 +4,5 @@ public enum MessageType
 {
     ClanDeleted,
     TextChannelDeleted,
-    VoiceChannelDeleted
+    VoiceChannelDeleted,
 }
