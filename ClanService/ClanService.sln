@@ -5,6 +5,8 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClanService", "ClanService\ClanService.csproj", "{14A0ECFC-EA00-C69F-0675-7FCB15F80EA3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClanServiceTest", "ClanServiceTest\ClanServiceTest.csproj", "{C649702A-F5CD-4DC6-A79A-5E172353C406}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,18 @@ Global
 		{14A0ECFC-EA00-C69F-0675-7FCB15F80EA3}.Release|x64.Build.0 = Release|Any CPU
 		{14A0ECFC-EA00-C69F-0675-7FCB15F80EA3}.Release|x86.ActiveCfg = Release|Any CPU
 		{14A0ECFC-EA00-C69F-0675-7FCB15F80EA3}.Release|x86.Build.0 = Release|Any CPU
+		{C649702A-F5CD-4DC6-A79A-5E172353C406}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C649702A-F5CD-4DC6-A79A-5E172353C406}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C649702A-F5CD-4DC6-A79A-5E172353C406}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C649702A-F5CD-4DC6-A79A-5E172353C406}.Debug|x64.Build.0 = Debug|Any CPU
+		{C649702A-F5CD-4DC6-A79A-5E172353C406}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C649702A-F5CD-4DC6-A79A-5E172353C406}.Debug|x86.Build.0 = Debug|Any CPU
+		{C649702A-F5CD-4DC6-A79A-5E172353C406}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C649702A-F5CD-4DC6-A79A-5E172353C406}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C649702A-F5CD-4DC6-A79A-5E172353C406}.Release|x64.ActiveCfg = Release|Any CPU
+		{C649702A-F5CD-4DC6-A79A-5E172353C406}.Release|x64.Build.0 = Release|Any CPU
+		{C649702A-F5CD-4DC6-A79A-5E172353C406}.Release|x86.ActiveCfg = Release|Any CPU
+		{C649702A-F5CD-4DC6-A79A-5E172353C406}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
