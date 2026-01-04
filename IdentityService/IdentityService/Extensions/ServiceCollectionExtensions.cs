@@ -47,7 +47,7 @@ namespace IdentityService.Extensions
 
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
-            services.AddScoped<IdentityProducer>();
+            services.AddScoped<IIdentityProducer, IdentityProducer>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IdentityDbContext>();
             services.AddScoped<IEmailService, EmailService>();
