@@ -2,6 +2,8 @@ using Xunit;
 using IdentityService.Utilities;
 using IdentityService.Models;
 using Microsoft.Extensions.Configuration;
+
+namespace IdentityServiceTests.UnitTests.Utilities; 
 public class GenerateTokenTests
 {
     [Fact]
