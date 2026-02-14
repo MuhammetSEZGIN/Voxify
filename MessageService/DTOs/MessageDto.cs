@@ -1,11 +1,12 @@
 using System;
+using MongoDB.Bson;
 
 namespace MessageService.DTOs;
 
 public class MessageDto
 {
-    public Guid Id { get; set; }
-    public Guid ChannelId { get; set; }
+    public ObjectId Id { get; set; }
+    public string ChannelId { get; set; }
     public string UserName { get; set; }
     public string SenderId { get; set; }
     public string AvatarUrl { get; set; }   

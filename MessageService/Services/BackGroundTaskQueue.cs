@@ -1,4 +1,5 @@
 using System.Threading.Channels;
+
 namespace MessageService.Services
 {
     public class BackgroundTaskQueue : IBackgroundTaskQueue
@@ -8,13 +9,13 @@ namespace MessageService.Services
         public BackgroundTaskQueue(int capacity)
         {
             _queue = Channel.CreateBounded<Func<CancellationToken, ValueTask>>(
-                new BoundedChannelOptions(capacity)
-                {
-                    FullMode = BoundedChannelFullMode.Wait
-                });
+                new BoundedChannelOptions(capacity) { FullMode = BoundedChannelFullMode.Wait }
+            );
         }
 
-        public async ValueTask QueueBackgroundWorkItemAsync(Func<CancellationToken, ValueTask> workItem)
+        public async ValueTask QueueBackgroundWorkItemAsync(
+            Func<CancellationToken, ValueTask> workItem
+        )
         {
             if (workItem == null)
                 throw new ArgumentNullException(nameof(workItem));
@@ -22,7 +23,9 @@ namespace MessageService.Services
             await _queue.Writer.WriteAsync(workItem);
         }
 
-        public async ValueTask<Func<CancellationToken, ValueTask>> DequeueAsync(CancellationToken cancellationToken)
+        public async ValueTask<Func<CancellationToken, ValueTask>> DequeueAsync(
+            CancellationToken cancellationToken
+        )
         {
             return await _queue.Reader.ReadAsync(cancellationToken);
         }

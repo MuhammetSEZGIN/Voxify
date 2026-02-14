@@ -1,7 +1,9 @@
+using MessageService.DTOs;
 using MessageService.Interfaces.Repositories.IUserRepository;
 using MessageService.Interfaces.Services;
 using MessageService.Models;
 using Microsoft.EntityFrameworkCore;
+using MongoDB.Bson;
 
 namespace MessageService.Services;
 
@@ -32,12 +34,12 @@ public class MessageService : IMessageService
                 return ServiceResult<Message>.BadRequest("Message content cannot be empty");
             }
 
-            if (message.ChannelId == Guid.Empty)
+            if (string.IsNullOrWhiteSpace(message.ChannelId))
             {
                 _logger.LogWarning("Attempted to create message with invalid channel ID");
                 return ServiceResult<Message>.BadRequest("Channel ID is required");
             }
-
+            message.Id = ObjectId.GenerateNewId();
             message.CreatedAt = DateTime.UtcNow;
             await _messageRepository.AddAsync(message);
             _logger.LogInformation("Message {MessageId} created successfully for channel {ChannelId}",
@@ -57,30 +59,22 @@ public class MessageService : IMessageService
         }
     }
 
-    public Task DeleteAsync(Message entity)
-    {
-        throw new NotImplementedException();
-    }
-
-    public async Task<ServiceResult<bool>> DeleteMessageAsync(Guid messageId)
+    public async Task<ServiceResult<bool>> DeleteMessageAsync(ObjectId messageId)
     {
         try
         {
-            if (messageId == Guid.Empty)
+            
+            if (messageId == ObjectId.Empty)
             {
                 _logger.LogWarning("Attempted to delete message with empty ID");
                 return ServiceResult<bool>.BadRequest("Message ID cannot be empty");
             }
-
-            var message = await _messageRepository.GetByIdAsync(messageId);
-            if (message == null)
+            var result = await _messageRepository.DeleteMessagesByMessageId(messageId);
+            if (!result)
             {
                 _logger.LogError("Message with id {MessageId} not found", messageId);
                 return ServiceResult<bool>.NotFound("Message not found");
-
             }
-
-            await _messageRepository.DeleteAsync(message);
             _logger.LogInformation("Deleted message with id {MessageId}", messageId);
             return ServiceResult<bool>.Success(true, "Message deleted successfully");
         }
@@ -98,24 +92,14 @@ public class MessageService : IMessageService
 
     }
 
-    public Task<IEnumerable<Message>> GetAllAsync()
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<Message> GetByIdAsync(Guid id)
-    {
-        throw new NotImplementedException();
-    }
-
-    public async Task<ServiceResult<IEnumerable<Message>>> GetMessagesInChannelAsync(Guid channelId, int limit, int page)
+    public async Task<ServiceResult<IEnumerable<MessageDto>>> GetMessagesInChannelAsync(string channelId, int limit, int page)
     {
         try
         {
-            if (channelId == Guid.Empty)
+            if (string.IsNullOrWhiteSpace(channelId))
             {
                 _logger.LogWarning("Attempted to get messages with empty channel ID");
-                return ServiceResult<IEnumerable<Message>>.BadRequest("Channel ID cannot be empty");
+                return ServiceResult<IEnumerable<MessageDto>>.BadRequest("Channel ID cannot be empty");
             }
 
             if (limit <= 0) limit = 20;
@@ -124,25 +108,20 @@ public class MessageService : IMessageService
 
             var messages = await _messageRepository.GetMessagesInChannelAsync(channelId, limit, page);
             _logger.LogInformation("Retrieved {MessageCount} messages for channel {ChannelId}", messages.Count(), channelId);
-            return ServiceResult<IEnumerable<Message>>.Success(messages, "Messages retrieved successfully");
+            return ServiceResult<IEnumerable<MessageDto>>.Success(messages, "Messages retrieved successfully");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving messages for channel {ChannelId}", channelId);
-            return ServiceResult<IEnumerable<Message>>.Error("An error occurred while retrieving messages");
+            return ServiceResult<IEnumerable<MessageDto>>.Error("An error occurred while retrieving messages");
         }
     }
 
-    public Task UpdateAsync(Message entity)
-    {
-        throw new NotImplementedException();
-    }
-
-    public async Task<ServiceResult<Message>> UpdateMessage(Guid messageId, string newContent)
+    public async Task<ServiceResult<Message>> UpdateMessage(ObjectId messageId, string newContent)
     {
         try
         {
-            if (messageId == Guid.Empty)
+            if (messageId == ObjectId.Empty)
             {
                 _logger.LogWarning("Attempted to update message with empty ID");
                 return ServiceResult<Message>.BadRequest("Message ID cannot be empty");
@@ -162,7 +141,7 @@ public class MessageService : IMessageService
             }
 
             message.Text = newContent;
-            await _messageRepository.UpdateAsync(message);
+            await _messageRepository.UpdateAsync(messageId,message);
              _logger.LogInformation("Message {MessageId} updated successfully", messageId);
             return ServiceResult<Message>.Success(message);
         }
