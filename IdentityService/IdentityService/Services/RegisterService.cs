@@ -58,6 +58,12 @@ public class RegisterService : IRegisterService
                     string.Join("; ", result.Errors.Select(e => e.Description))
                 );
             }
+            var refreshToken = await _refreshTokenService.CreateUserRefreshTokenAsync(
+                user.Id,
+                model.DeviceInfo,
+                _ipAddressService.GetClientIpAddress()
+            );
+               
             await _messagePublisher.PublishUserUpdatedMessageAsync(
                 user.UserName,
                 user.AvatarUrl,
@@ -69,11 +75,7 @@ public class RegisterService : IRegisterService
                 model.UserName,
                 model.Email
             );
-            var refreshToken = await _refreshTokenService.CreateUserRefreshTokenAsync(
-                user.Id,
-                model.DeviceInfo,
-                _ipAddressService.GetClientIpAddress()
-            );
+            
 
             return ApiResponse<RegisterResponseDto>.Success(
                 new RegisterResponseDto

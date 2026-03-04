@@ -74,5 +74,17 @@ namespace MessageService.Controllers
             
             return Ok(new { message = "Message sent successfully" });
         }
+
+        [HttpPut]
+        public async Task<IActionResult> UpdateMessage([FromBody] string message, ObjectId messageId)
+        {
+            var result = await _messageService.UpdateMessage(messageId, message);
+            if (!result.IsSuccess)
+            {
+                return StatusCode(result.StatusCode, new { message = result.Message });
+            }
+             return Ok(new { message = "Message updated successfully" });
+        }
+        
     }
 }

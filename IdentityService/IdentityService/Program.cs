@@ -6,18 +6,31 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Logging
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+
 // Service configurations
 builder.Services.AddApiConfiguration(); //  This already includes Swagger
-builder.Services.AddDatabaseConfiguration(builder.Configuration);
+
+// Using build service provider cause an warning so i use a logger 
+// factory to create a logger instance and pass it to the database configuration method
+using var loggerFactory = LoggerFactory.Create(loggingBuilder =>
+{
+    loggingBuilder.ClearProviders();
+    loggingBuilder.AddConsole();
+    loggingBuilder.AddDebug();
+});
+var logger = loggerFactory.CreateLogger<Program>();
+
+builder.Services.AddDatabaseConfiguration(builder.Configuration, logger);
 builder.Services.AddIdentityConfiguration();
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddCorsConfiguration();
 builder.Services.AddApplicationServices();
 
-// Logging
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
-builder.Logging.AddDebug();
+
 
 // RabbitMQ
 builder.Services.AddRabbitMQProducer(builder.Configuration);

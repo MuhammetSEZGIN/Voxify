@@ -25,6 +25,7 @@ public class RegisterModel
 
     [Compare("Password", ErrorMessage = "Passwords do not match.")]
     public string PasswordConfirmation { get; set; }
+    [Required(ErrorMessage ="Device Info is required")]
     public string DeviceInfo { get; set; }
     public string AvatarUrl { get; set; }
 }
