@@ -88,6 +88,18 @@ namespace ClanService.Controllers
             return Ok();
         }
 
+        [HttpGet("user")]
+        public async Task<IActionResult> GetMyClansAsync()
+        {
+            var userId = HttpContext.Items["UserId"]?.ToString();
+            if (string.IsNullOrEmpty(userId))
+                return BadRequest(new ErrorDto { Message = "User ID not found in request headers." });
+
+            List<Clan> clans = await _clanService.GetClansByUserIdAsync(userId);
+            var clanReadDtos = _mapper.Map<List<ClanReadDto>>(clans);
+            return Ok(clanReadDtos);
+        }
+
         [HttpGet("user/{userId}")]
         public async Task<IActionResult> GetClansByUserIdAsync(string userId)
         {

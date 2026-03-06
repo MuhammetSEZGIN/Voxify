@@ -39,9 +39,9 @@ namespace MessageService.Controllers
             var messageDtos = result.Data.Select(m => new MessageDto 
             {
                 Id = m.Id,
-                UserName = m.SenderId ?? "Unknown",
+                UserName = m.UserName ?? "Unknown",
                 ChannelId = m.ChannelId,
-                AvatarUrl = m.SenderId ?? string.Empty,
+                AvatarUrl = m.AvatarUrl ?? string.Empty,
                 SenderId = m.SenderId,
                 Text = m.Text,
                 CreatedAt = m.CreatedAt

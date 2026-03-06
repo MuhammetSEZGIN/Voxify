@@ -63,6 +63,16 @@ public class RegisterService : IRegisterService
                 model.DeviceInfo,
                 _ipAddressService.GetClientIpAddress()
             );
+
+            if (!refreshToken.IsSuccessfull || refreshToken.Data == null)
+            {
+                _logger.LogWarning("Failed to create refresh token for user: {Username}", model.UserName);
+                return ApiResponse<RegisterResponseDto>.Failed(
+                    "User created but failed to generate session tokens.",
+                    refreshToken.Errors,
+                    refreshToken.StatusCode
+                );
+            }
                
             await _messagePublisher.PublishUserUpdatedMessageAsync(
                 user.UserName,
@@ -75,7 +85,6 @@ public class RegisterService : IRegisterService
                 model.UserName,
                 model.Email
             );
-            
 
             return ApiResponse<RegisterResponseDto>.Success(
                 new RegisterResponseDto

@@ -18,7 +18,7 @@ public class IdentityConsumer : IConsumer<UserUpdatedMessage>
     }
     public async Task Consume(ConsumeContext<UserUpdatedMessage> context)
     {
-        _logger.LogInformation($"Received message: {context.Message.userName} \n {context.Message.avatarUrl}");
+        _logger.LogInformation($"Received message: {context.Message.userName} \n {context.Message.AvatarUrl}");
         await _rabbitMqService.ConsumeUserInformation(context.Message); 
     }
    
