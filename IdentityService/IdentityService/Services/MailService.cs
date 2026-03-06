@@ -44,6 +44,17 @@ public class EmailService : IEmailService
         {
             // appsettings veya User Secrets'tan SMTP ayarlarını çek
             var smtpSettings = _configuration.GetSection("Smtp");
+            var isEnabled = smtpSettings.GetValue<bool>("Enabled", true);
+            
+            // Eğer mail servisi devre dışı ise, işlem yapmadan başarılı response döndür
+            if (!isEnabled)
+            {
+                _logger.LogInformation("Mail servisi devre dışı. E-posta gönderilmedi: {Email}", toEmail);
+                return ApiResponse<object>.Success(
+                    "E-posta servisi devre dışı.",
+                    (int)HttpStatusCode.OK
+                );
+            }
             var fromAddress = smtpSettings["FromAddress"];
             var host = smtpSettings["Host"];
             var port = int.Parse(smtpSettings["Port"]);

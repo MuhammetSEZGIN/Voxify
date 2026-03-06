@@ -1,101 +1,48 @@
+version: '3.8'
+
 services:
-  postgres:
+  # 1. PostgreSQL - Clan Service İçin
+  clanservice-db:
     image: postgres:latest
+    container_name: clanservice-postgres
+    restart: always
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: sesver
+      POSTGRES_DB: clanservicedb
     ports:
       - "5432:5432"
     volumes:
-      - ./postgres-init:/docker-entrypoint-initdb.d
-      - postgres-data:/var/lib/postgresql/data
+      - clan_pg_data:/var/lib/postgresql
 
-  rabbitmq:
-    image: rabbitmq:3-management
-    ports:
-      - "5672:5672"  # AMQP
-      - "15672:15672"  # Management interface
+  # 2. PostgreSQL - Identity Service İçin
+  identity-db:
+    image: postgres:latest
+    container_name: identity-postgres
+    restart: always
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: IdentityDb
+    ports:
+      - "5433:5432" 
+    volumes:
+      - identity_pg_data:/var/lib/postgresql
 
-  apigateway:
-    build:
-      context: .
-      dockerfile: ApiGateway/Dockerfile
-    ports:
-      - "5000:5000"
-    depends_on:
-      - clanservice
-      - identityservice
-      - messageservice
-      - voiceservice
+  # 3. MongoDB - Message Service İçin
+  message-db:
+    image: mongo:latest
+    container_name: message-mongodb
+    restart: always
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-
-  clanservice:
-    build:
-      context: .
-      dockerfile: ClanService/Dockerfile
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: 1234
     ports:
-      - "5074:80"
-    depends_on:
-      - postgres
-      - rabbitmq
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Host=postgres;Database=clanservicedb;Username=postgres;Password=postgres
-      - RabbitMQ__HostName=rabbitmq
-      - RabbitMQ__UserName=guest
-      - RabbitMQ__Password=guest
-  identityservice:
-    build:
-      context: .
-      dockerfile: IdentityService/Dockerfile
-    ports:
-      - "5158:80"
-    depends_on:
-      - postgres
-      - rabbitmq
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Host=postgres;Database=identityservicedb;Username=postgres;Password=postgres
-      - RabbitMQ__HostName=rabbitmq
-      - RabbitMQ__UserName=guest
-      - RabbitMQ__Password=guest
-
-  messageservice:
-    build:
-      context: .
-      dockerfile: MessageService/Dockerfile
-    ports:
-      - "5107:80"
-    depends_on:
-      - postgres
-      - rabbitmq
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Host=postgres;Database=messageservicedb;Username=postgres;Password=postgres
-      - RabbitMQ__HostName=rabbitmq
-      - RabbitMQ__UserName=guest
-      - RabbitMQ__Password=guest
-
-  voiceservice:
-    build:
-      context: .
-      dockerfile: VoiceService/Dockerfile
-    ports:
-      - "5044:80"
-    depends_on:
-      - postgres
-      - rabbitmq
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Host=postgres;Database=voiceservicedb;Username=postgres;Password=postgres
-      - RabbitMQ__HostName=rabbitmq
-      - RabbitMQ__UserName=guest
-      - RabbitMQ__Password=guest
+      - "27017:27017"
+    volumes:
+      - message_mongo_data:/data/db
 
 volumes:
-  postgres-data:
+  clan_pg_data:
+  identity_pg_data:
+  message_mongo_data:
