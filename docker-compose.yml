@@ -25,7 +25,7 @@ services:
       POSTGRES_PASSWORD: admin123
       POSTGRES_DB: IdentityDb
     ports:
-      - "5433:5432" 
+      - "5433:5432"
     volumes:
       - identity_pg_data:/var/lib/postgresql
 
@@ -41,6 +41,34 @@ services:
       - "27017:27017"
     volumes:
       - message_mongo_data:/data/db
+
+  # ---------------- YENİ EKLENENLER ---------------- #
+
+  # 4. Redis - LiveKit'in Hızlı Bellek Yönetimi İçin
+  livekit-redis:
+    image: redis:7-alpine
+    container_name: livekit-redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+# 5. LiveKit Server - Ses ve Video SFU
+  livekit-server:
+    image: livekit/livekit-server:latest
+    container_name: livekit-server
+    restart: always
+    command: ["--dev"] # Sadece geliştirici modunu komut olarak bırakıyoruz
+    environment:
+      # Tüm ayarları ortam değişkeni olarak veriyoruz (YAML burada hata vermez)
+      LIVEKIT_KEYS: "devkey: secret"
+      REDIS_HOST: "livekit-redis:6379"
+      NODE_IP: "192.168.5.122"
+    ports:
+      - "7880:7880"      
+      - "7881:7881"      
+      - "7882:7882/udp"  
+    depends_on:
+      - livekit-redis
 
 volumes:
   clan_pg_data:

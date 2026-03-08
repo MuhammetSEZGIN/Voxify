@@ -7,8 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityService", "Identity
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageService", "MessageService\MessageService.csproj", "{FAFFC5DB-ABD3-439F-8C9C-8C343BB13B61}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoiceService", "VoiceService\VoiceService.csproj", "{E2D9BE54-3038-4343-8088-14B1BB9CD20F}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiGateway", "ApiGateway\ApiGateway.csproj", "{9E702288-83F6-4DE7-885F-4B2FE3B90D24}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ClanService", "ClanService", "{6F26DCC5-BD87-A405-8EA0-82EE07C49747}"
