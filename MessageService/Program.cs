@@ -73,5 +73,6 @@ app.UseAuthentication();
 app.UseRateLimiter();
 app.UseAuthorization();
 app.MapHub<MessageHub>("/messagehub");
+app.MapHub<VoicePresenceHub>("/hubs/voice");
 app.MapControllers();
 app.Run();
