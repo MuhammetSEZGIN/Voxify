@@ -34,4 +34,18 @@ public class ClanMessageProducer : IClanMessageProducer
         );
         await _publishEndpoint.Publish(message);
     }
+
+    public async Task PublishClanDeletedMessageAsync(string clanId)
+    {
+        var message = new ClanDeletedMessage
+        {
+            ClanId = clanId
+        };
+
+        _logger.LogInformation(
+            "Publishing ClanDeletedMessage for clan: {clanId}",
+            clanId
+        );
+        await _publishEndpoint.Publish(message);
+    }
 }

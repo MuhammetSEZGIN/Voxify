@@ -10,11 +10,10 @@ public static class MassTransitManager
     {
         var rabbitMqOptions = new RabbitMQOptions();
         configuration.GetSection("RabbitMQ").Bind(rabbitMqOptions);
-        Console.WriteLine("********\n" + JsonSerializer.Serialize(rabbitMqOptions)); services.AddMassTransit(x =>
+        services.AddMassTransit(x =>
                  {
-                     // Consumer'ı ve tanımını ekleyin
                      x.AddConsumer<IdentityConsumer, SubmitIdentityConsumeDefinition>();
-                    
+
                      x.UsingRabbitMq((context, cfg) =>
                      {
                          cfg.Host(rabbitMqOptions.HostName, (ushort)rabbitMqOptions.Port, rabbitMqOptions.VirtualHost, h =>

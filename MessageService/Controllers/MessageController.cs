@@ -57,6 +57,7 @@ namespace MessageService.Controllers
             
             if (!result.IsSuccess)
             {
+                
                 return StatusCode(result.StatusCode, new { message = result.Message });
             }
             

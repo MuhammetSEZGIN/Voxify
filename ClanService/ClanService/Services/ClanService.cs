@@ -2,6 +2,7 @@ using ClanService.Models;
 using ClanService.Interfaces;
 using ClanService.DTOs.ClanDtos;
 using ClanService.Interfaces.Repositories;
+using ClanService.Interfaces.Services;
 
 namespace ClanService.Services
 {
@@ -9,6 +10,8 @@ namespace ClanService.Services
     {
         private readonly IClanRepository _clanRepository;
         private readonly IUserRepository _userRepository;
+        private readonly IClanMessageProducer _clanMessageProducer;
+
         private readonly IClanMembershipRepository _clanMembershipRepository;
         private readonly IClanInvitation _clanInvitationRepository;
         private readonly ILogger<ClanService> _logger;
@@ -18,6 +21,7 @@ namespace ClanService.Services
             IUserRepository userRepository,
             IClanMembershipRepository clanMembershipRepository,
             IClanInvitation clanInvitationRepository,
+            IClanMessageProducer clanMessageProducer,
             ILogger<ClanService> logger)
         {
             _logger = logger;
@@ -25,6 +29,7 @@ namespace ClanService.Services
             _userRepository = userRepository;
             _clanMembershipRepository = clanMembershipRepository;
             _clanInvitationRepository = clanInvitationRepository;
+            _clanMessageProducer = clanMessageProducer;
         }
 
         public async Task<(Clan, string)> CreateClanAsync(Clan clan, string userId)
@@ -32,7 +37,7 @@ namespace ClanService.Services
             try
             {
                 var user = await _userRepository.GetByIdAsync(userId);
-                if (user == null) 
+                if (user == null)
                     return (null, "User not found");
 
                 clan.ClanId = Guid.NewGuid();
@@ -45,7 +50,7 @@ namespace ClanService.Services
                     Role = ClanRole.Owner
                 };
                 await _clanMembershipRepository.AddAsync(clanMembership);
-                
+
                 return (clan, "Clan created successfully");
             }
             catch (Exception e)
@@ -57,49 +62,106 @@ namespace ClanService.Services
 
         public async Task<Clan> GetClanByIdAsync(Guid clanId)
         {
-            return await _clanRepository.GetClanWithDetailsAsync(clanId);
+            try
+            {
+                return await _clanRepository.GetClanWithDetailsAsync(clanId);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error while getting clan {ClanId}", clanId);
+                return null;
+            }
         }
 
         public async Task<IEnumerable<Clan>> GetAllClansAsync()
         {
-            return await _clanRepository.GetAllAsync();
+            try
+            {
+                return await _clanRepository.GetAllAsync();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error while getting all clans");
+                return Enumerable.Empty<Clan>();
+            }
         }
 
         public async Task<Clan> UpdateClanAsync(Clan clan)
         {
-            await _clanRepository.UpdateAsync(clan);
-            return clan;
+            try
+            {
+                await _clanRepository.UpdateAsync(clan);
+                return clan;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error while updating clan {ClanId}", clan.ClanId);
+                return null;
+            }
         }
 
         public async Task<bool> DeleteClanAsync(Guid clanId)
         {
-            var existing = await _clanRepository.GetByIdAsync(clanId);
-            if (existing == null) return false;
+            try
+            {
+                var existing = await _clanRepository.GetByIdAsync(clanId);
+                if (existing == null) return false;
 
-            await _clanRepository.DeleteAsync(existing);
-            return true;
+                var result = await _clanRepository.DeleteAsync(existing);
+                if (result != null)
+                {
+                    await _clanMessageProducer.PublishClanDeletedMessageAsync(clanId.ToString());
+                    _logger.LogInformation("Clan {ClanId} deleted successfully", clanId);
+                }
+                else
+                {
+                    _logger.LogError("Failed to delete clan {ClanId}", clanId);
+                }
+                return result != null;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error while deleting clan {ClanId}", clanId);
+                return false;
+            }
         }
 
         public async Task<List<Clan>> GetClansByUserIdAsync(string userId)
         {
-            var result= await _clanRepository.GetClansByUserIdAsync(userId);
-            return result.ToList(); 
+            try
+            {
+                var result = await _clanRepository.GetClansByUserIdAsync(userId);
+                return result.ToList();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error while getting clans for user {UserId}", userId);
+                return new List<Clan>();
+            }
         }
 
         public async Task<ClanInvitation> CreateInviteTokenAsync(Guid clanId, TimeSpan? expipreInHours, int? maxUses)
         {
-            var clanInvitation = new ClanInvitation
+            try
             {
-                ClanId = clanId,
-                ExpiresAt = DateTime.UtcNow.Add(expipreInHours ?? TimeSpan.FromHours(24)),
-                InviteCode = GenerateInviteCode(),
-                IsActive = true,
-                MaxUses = maxUses ?? 10,
-                UsedCount = 0
-            };
-            
-            await _clanInvitationRepository.AddAsync(clanInvitation);
-            return clanInvitation;
+                var clanInvitation = new ClanInvitation
+                {
+                    ClanId = clanId,
+                    ExpiresAt = DateTime.UtcNow.Add(expipreInHours ?? TimeSpan.FromHours(24)),
+                    InviteCode = GenerateInviteCode(),
+                    IsActive = true,
+                    MaxUses = maxUses ?? 10,
+                    UsedCount = 0
+                };
+
+                await _clanInvitationRepository.AddAsync(clanInvitation);
+                return clanInvitation;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error while creating invite token for clan {ClanId}", clanId);
+                return null;
+            }
         }
 
         private string GenerateInviteCode()
@@ -109,33 +171,49 @@ namespace ClanService.Services
 
         public async Task<ClanInvitation> GetInvitationByCodeAsync(string code)
         {
-            return await _clanInvitationRepository.GetByCodeAsync(code);
+            try
+            {
+                return await _clanInvitationRepository.GetByCodeAsync(code);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error while getting invitation by code {Code}", code);
+                return null;
+            }
         }
-        
+
         public async Task<(bool, string, ClanInvitation)> ValidateAndUseInvitationAsync(string code)
         {
-            var invitation = await GetInvitationByCodeAsync(code);
-            if (invitation == null || !invitation.IsActive)
-                return (false,"The code is invalid or inactive", null);
-                
-            if (DateTime.UtcNow > invitation.ExpiresAt)
+            try
             {
-                invitation.IsActive = false;
+                var invitation = await GetInvitationByCodeAsync(code);
+                if (invitation == null || !invitation.IsActive)
+                    return (false, "The code is invalid or inactive", null);
+
+                if (DateTime.UtcNow > invitation.ExpiresAt)
+                {
+                    invitation.IsActive = false;
+                    await _clanInvitationRepository.UpdateAsync(invitation);
+                    return (false, "Expired invitation code", null);
+                }
+
+                if (invitation.UsedCount >= invitation.MaxUses)
+                {
+                    invitation.IsActive = false;
+                    await _clanInvitationRepository.UpdateAsync(invitation);
+                    return (false, "Max usage limit reached", null);
+                }
+
+                invitation.UsedCount++;
                 await _clanInvitationRepository.UpdateAsync(invitation);
-                return (false, "Expired invitation code", null);
+
+                return (true, "Invitation code is valid", invitation);
             }
-          
-            if (invitation.UsedCount >= invitation.MaxUses)
+            catch (Exception e)
             {
-                invitation.IsActive = false;
-                await _clanInvitationRepository.UpdateAsync(invitation);
-                return (false, "Max usage limit reached", null);
+                _logger.LogError(e, "Error while validating invitation code {Code}", code);
+                return (false, "An error occurred while validating the invitation", null);
             }
-
-            invitation.UsedCount++;
-            await _clanInvitationRepository.UpdateAsync(invitation);
-
-            return (true, "Invitation code is valid", invitation);
         }
     }
 }
