@@ -8,21 +8,20 @@ public static class MassTransitManager
 {
     public static IServiceCollection AddRabbitMQServices(this IServiceCollection services, IConfiguration configuration)
     {
-        var rabbitMqOptions = new RabbitMQOptions(); // Doğru sınıf adını kullanın
+        var rabbitMqOptions = new RabbitMQOptions();
         configuration.GetSection("RabbitMQ").Bind(rabbitMqOptions);
         Console.WriteLine("********\n" + JsonSerializer.Serialize(rabbitMqOptions)); services.AddMassTransit(x =>
                  {
                      // Consumer'ı ve tanımını ekleyin
                      x.AddConsumer<IdentityConsumer, SubmitIdentityConsumeDefinition>();
-
+                    
                      x.UsingRabbitMq((context, cfg) =>
                      {
-                         // Güncellenmiş seçenekleri ve SSL'i kullanın
                          cfg.Host(rabbitMqOptions.HostName, (ushort)rabbitMqOptions.Port, rabbitMqOptions.VirtualHost, h =>
                          {
                              h.Username(rabbitMqOptions.UserName);
                              h.Password(rabbitMqOptions.Password);
-                             if (rabbitMqOptions.Port == 5671) // Port 5671 ise SSL kullan
+                             if (rabbitMqOptions.Port == 5671)
                              {
                                  h.UseSsl(s =>
                                  {
@@ -34,7 +33,6 @@ public static class MassTransitManager
                  {
                                 r.Interval(5, TimeSpan.FromSeconds(10));
                             });
-                         // Endpoint'leri otomatik yapılandır
                          cfg.ConfigureEndpoints(context);
                      });
                  });

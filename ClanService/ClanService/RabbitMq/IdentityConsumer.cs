@@ -1,7 +1,7 @@
 using System;
 using MassTransit;
-using Identity.DTOs;
 using ClanService.Interfaces;
+using Shared.Contracts;
 namespace ClanService.RabbitMq;
 
 public class IdentityConsumer : IConsumer<UserUpdatedMessage>

@@ -1,6 +1,6 @@
 using System;
 using ClanService.Interfaces;
-using Identity.DTOs;
+using Shared.Contracts;
 using ClanService.Models;
 using ClanService.Interfaces.Repositories;
 
