@@ -99,6 +99,32 @@ public class PresenceRepository : IPresenceRepository
         return Task.FromResult(result);
     }
 
+public async Task DeleteVoiceChannel(string clanId, string channelId)
+{
+    // 1. Ses varlığı listesinden (Participants) kanalı tamamen uçur
+    if (_voicePresence.TryGetValue(clanId, out var channels))
+    {
+        channels.TryRemove(channelId, out _);
+        
+        if (channels.IsEmpty)
+            _voicePresence.TryRemove(clanId, out _);
+    }
+
+    // 2. Bağlantı takibi (Cleanup mapping) kısmından bu kanalda olan HERKESİ temizle
+    // Bu kısım önemli, çünkü kullanıcı koptuğunda "zaten silinmiş bir kanaldan" ayrılmaya çalışmasın.
+    var connectionsToRemove = _voiceConnections
+        .Where(x => x.Value.ChannelId == channelId)
+        .Select(x => x.Key)
+        .ToList();
+
+    foreach (var connId in connectionsToRemove)
+    {
+        _voiceConnections.TryRemove(connId, out _);
+    }
+
+    await Task.CompletedTask;
+}
+
     // ── Helpers ────────────────────────────────────────────────────────────────
 
     private void RemoveVoiceParticipant(string clanId, string voiceChannelId, string userId)
