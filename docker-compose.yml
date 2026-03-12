@@ -53,22 +53,27 @@ services:
       - "6379:6379"
 
 # 5. LiveKit Server - Ses ve Video SFU
+# 5. LiveKit Server
   livekit-server:
     image: livekit/livekit-server:latest
     container_name: livekit-server
     restart: always
-    command: ["--dev"] # Sadece geliştirici modunu komut olarak bırakıyoruz
+    # Komutu biraz detaylandıralım: hem dev modu hem de dışarıya kapıları açalım
+    command: ["--dev", "--node-ip", "25.21.121.153"] 
     environment:
-      # Tüm ayarları ortam değişkeni olarak veriyoruz (YAML burada hata vermez)
       LIVEKIT_KEYS: "devkey: secret"
       REDIS_HOST: "livekit-redis:6379"
-      NODE_IP: "192.168.5.122"
+      # Bazı sürümlerde env var olarak NODE_IP yeterli olmayabilir, o yüzden komuta da ekledik
+      NODE_IP: "25.21.121.153"
     ports:
-      - "7880:7880"      
-      - "7881:7881"      
-      - "7882:7882/udp"  
+      - "7880:7880"      # HTTP API / Signaling
+      - "7881:7881"      # WebRTC over TCP
+      - "7882:7882/udp"  # WebRTC over UDP (Asıl ses verisi)
     depends_on:
       - livekit-redis
+    # Eğer Linux kullanıyorsan aşağıdaki satırı aktif etmek Hamachi için en garantisidir
+    # network_mode: "host" 
+    # Not: Windows kullanıyorsan ports: kısmını kullanmaya devam et.
 
 volumes:
   clan_pg_data:

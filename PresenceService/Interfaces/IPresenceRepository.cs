@@ -18,6 +18,7 @@ public interface IPresenceRepository
     Task JoinVoiceChannel(string connectionId, string userId, string userName, string clanId, string voiceChannelId);
     Task<(string ClanId, string ChannelId, string UserId)?> LeaveVoiceChannel(string connectionId);
     Task DeleteVoiceChannel(string clanId, string channelId);
+    Task DeleteClan(string clanId);
 
     Task<Dictionary<string, List<UserInfo>>> GetVoiceChannelParticipants(string clanId);
 }

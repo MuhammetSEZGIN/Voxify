@@ -1,6 +1,8 @@
 using ClanService.Models;
 using ClanService.Interfaces;
 using ClanService.Interfaces.Repositories;
+using ClanService.Interfaces.Services;
+using Shared.Contracts;
 
 namespace ClanService.Services
 {
@@ -8,19 +10,25 @@ namespace ClanService.Services
     {
         private readonly IClanRepository _clanRepository;
         private readonly IVoiceChannelRepository _voiceChannelRepository;
+        private readonly IClanMessageProducer _clanMessageProducer;
+        private readonly ILogger<VoiceChannelService> _logger;
 
-        public VoiceChannelService(IClanRepository clanRepository, IVoiceChannelRepository voiceChannelRepository)
+        public VoiceChannelService(
+            IClanRepository clanRepository, IVoiceChannelRepository voiceChannelRepository, 
+            IClanMessageProducer clanMessageProducer, ILogger<VoiceChannelService> logger)
         {
             _clanRepository = clanRepository;
             _voiceChannelRepository = voiceChannelRepository;
+            _clanMessageProducer = clanMessageProducer;
+            _logger = logger;
         }
 
         public async Task<(VoiceChannel, string)> CreateVoiceChannelAsync(VoiceChannel voiceChannel)
         {
             var clan = await _clanRepository.GetByIdAsync(voiceChannel.ClanId);
-            if(clan == null) 
+            if (clan == null)
                 return (null, "Clan not found");
-            
+
             await _voiceChannelRepository.AddAsync(voiceChannel);
             return (voiceChannel, "VoiceChannel created successfully");
         }
@@ -46,7 +54,16 @@ namespace ClanService.Services
         {
             var existing = await _voiceChannelRepository.GetByIdAsync(voiceChannelId);
             if (existing == null) return false;
-
+                await _clanMessageProducer.PublishChannelDeletedMessageAsync(
+                    existing.VoiceChannelId.ToString(), 
+                    existing.ClanId.ToString(), 
+                    ChannelType.VoiceChannel
+                );
+                _logger.LogInformation(
+                    "Published ChannelDeletedMessage for voice channel: {channelId}, clan: {clanId}",
+                    existing.VoiceChannelId,
+                    existing.ClanId
+                );
             await _voiceChannelRepository.DeleteAsync(existing);
             return true;
         }

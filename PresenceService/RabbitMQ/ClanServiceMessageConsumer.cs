@@ -21,43 +21,70 @@ public class ClanServiceMessageConsumer : IConsumer<ChannelDeletedMessage>
         _hubContext = hubContext;
     }
 
-  public async Task Consume(ConsumeContext<ChannelDeletedMessage> context)
-{
-    var message = context.Message;
-    
-    _logger.LogInformation("Kanal silme mesajı alındı: {ChannelId} (Klan: {ClanId}, Tip: {Type})", 
-        message.ChannelId, message.ClanId, message.ChannelType);
-
-    try
+    public async Task Consume(ConsumeContext<ChannelDeletedMessage> context)
     {
-        if (string.IsNullOrEmpty(message.ChannelId) || string.IsNullOrEmpty(message.ClanId))
-        {
-            _logger.LogWarning("Eksik veri içeren kanal silme mesajı alındı.");
-            return;
-        }
+        var message = context.Message;
 
-        if (message.ChannelType == ChannelType.VoiceChannel)
-        {
-            await _presenceRepository.DeleteVoiceChannel(message.ClanId, message.ChannelId);
-            _logger.LogInformation("Ses kanalı varlığı ve katılımcıları temizlendi: {ChannelId}", message.ChannelId);
-            
-            // Bu mesajı alan frontend, eğer kullanıcı o kanaldaysa LiveKit bağlantısını koparacak.
-            await _hubContext.Clients.Group($"clan_{message.ClanId}")
-                .SendAsync("OnVoiceChannelDeleted", message.ChannelId);
-        }
-        else
-        {
-            // Metin kanalı silinme bildirimi
-            await _hubContext.Clients.Group($"clan_{message.ClanId}")
-                .SendAsync("OnChannelDeleted", message.ChannelId);
-        }
+        _logger.LogInformation("Kanal silme mesajı alındı: {ChannelId} (Klan: {ClanId}, Tip: {Type})",
+            message.ChannelId, message.ClanId, message.ChannelType);
 
-        _logger.LogInformation("Kanal silinme bildirimi klan grubuna iletildi: {ClanId}", message.ClanId);
+        try
+        {
+            if (string.IsNullOrEmpty(message.ChannelId) || string.IsNullOrEmpty(message.ClanId))
+            {
+                _logger.LogWarning("Eksik veri içeren kanal silme mesajı alındı.");
+                return;
+            }
+
+            if (message.ChannelType == ChannelType.VoiceChannel)
+            {
+                await _presenceRepository.DeleteVoiceChannel(message.ClanId, message.ChannelId);
+                _logger.LogInformation("Ses kanalı varlığı ve katılımcıları temizlendi: {ChannelId}", message.ChannelId);
+
+                // Bu mesajı alan frontend, eğer kullanıcı o kanaldaysa LiveKit bağlantısını koparacak.
+                await _hubContext.Clients.Group($"clan_{message.ClanId}")
+                    .SendAsync("OnVoiceChannelDeleted", message.ChannelId);
+            }
+            else
+            {
+                // Metin kanalı silinme bildirimi
+                await _hubContext.Clients.Group($"clan_{message.ClanId}")
+                    .SendAsync("OnChannelDeleted", message.ChannelId);
+            }
+
+            _logger.LogInformation("Kanal silinme bildirimi klan grubuna iletildi: {ClanId}", message.ClanId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Kanal silme mesajı işlenirken hata oluştu: {ChannelId}", message.ChannelId);
+            throw; // MassTransit'in hata yönetimi (retry) için throw ediyoruz.
+        }
     }
-    catch (Exception ex)
+
+    public async Task Consume(ConsumeContext<ClanDeletedMessage> context)
     {
-        _logger.LogError(ex, "Kanal silme mesajı işlenirken hata oluştu: {ChannelId}", message.ChannelId);
-        throw; // MassTransit'in hata yönetimi (retry) için throw ediyoruz.
+        var message = context.Message;
+        _logger.LogInformation("Klan silme mesajı alındı: {ClanId}", message.ClanId);
+        try
+        {
+            if (string.IsNullOrEmpty(message.ClanId))
+            {
+                _logger.LogWarning("Eksik veri içeren klan silme mesajı alındı.");
+                return;
+            }
+
+            // Klan varlığı ve katılımcıları temizle
+            await _presenceRepository.DeleteClan(message.ClanId);
+            _logger.LogInformation("Klan varlığı ve katılımcıları temizlendi: {ClanId}", message.ClanId);
+
+            // Bu mesajı alan frontend, eğer kullanıcı o klandaysa LiveKit bağlantısını koparacak.
+            await _hubContext.Clients.Group($"clan_{message.ClanId}")
+                .SendAsync("OnClanDeleted", message.ClanId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Klan silme mesajı işlenirken hata oluştu: {ClanId}", message.ClanId);
+            throw; // MassTransit'in hata yönetimi (retry) için throw ediyoruz.
+        }
     }
-}
 }

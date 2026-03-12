@@ -125,6 +125,33 @@ public async Task DeleteVoiceChannel(string clanId, string channelId)
     await Task.CompletedTask;
 }
 
+    public async Task DeleteClan(string clanId)
+    {
+        // 1. Ses varlığından (voice presence) klanı tüm kanallarıyla sil
+        if (_voicePresence.TryRemove(clanId, out _))
+        {
+            // Bu klanda ses kanalında olan tüm bağlantıların takibini temizle
+            var voiceConnsToRemove = _voiceConnections
+                .Where(x => x.Value.ClanId == clanId)
+                .Select(x => x.Key)
+                .ToList();
+
+            foreach (var connId in voiceConnsToRemove)
+                _voiceConnections.TryRemove(connId, out _);
+        }
+
+        // 2. Clan subscription trackinginden bu klanı tüm bağlantılardan kaldır
+        foreach (var (connId, clans) in _connectionClans)
+        {
+            lock (clans)
+            {
+                clans.Remove(clanId);
+            }
+        }
+
+        await Task.CompletedTask;
+    }
+
     // ── Helpers ────────────────────────────────────────────────────────────────
 
     private void RemoveVoiceParticipant(string clanId, string voiceChannelId, string userId)
