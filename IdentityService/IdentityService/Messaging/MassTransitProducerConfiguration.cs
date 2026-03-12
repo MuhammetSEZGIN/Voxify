@@ -1,4 +1,3 @@
-using System;
 using System.Security.Authentication;
 using IdentityService.Messaging.RabbitMQ;
 using MassTransit;
@@ -20,7 +19,6 @@ namespace IdentityService.Messaging;
                     {
                         h.Username(rabbitMqOptions.UserName);
                         h.Password(rabbitMqOptions.Password);
-                        // Use SSL if connecting via amqps (CloudAMQP default port 5671)
                         if (rabbitMqOptions.Port == 5671)
                         {
                             h.UseSsl(s =>

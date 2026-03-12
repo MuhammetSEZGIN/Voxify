@@ -1,5 +1,4 @@
-using System;
-using Identity.DTOs;
+using Shared.Contracts;
 using IdentityService.Interfaces;
 using MassTransit;
 
