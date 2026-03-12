@@ -1,8 +1,5 @@
-using System;
 using MassTransit;
-using Identity.DTOs;
-using MessageService.Interfaces;
-using System.Threading.Channels;
+using Shared.Contracts;
 using MessageService.Interfaces.Services;
 namespace MessageService.RabbitMq;
 

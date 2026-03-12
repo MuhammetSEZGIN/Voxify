@@ -1,5 +1,5 @@
 using System;
-using ClanService.DTOs;
+using Shared.Contracts;
 using MassTransit;
 
 namespace MessageService.RabbitMq;

@@ -1,6 +1,4 @@
-using ClanService.DTOs;
-using Identity.DTOs;
-using MessageService.Data;
+using Shared.Contracts;
 using MessageService.Interfaces.Repositories.IUserRepository;
 using MessageService.Interfaces.Services;
 using MessageService.Models;

@@ -1,7 +1,4 @@
-using System;
-using ClanService.DTOs;
-using Identity.DTOs;
-
+using Shared.Contracts;
 namespace MessageService.Interfaces.Services;
 
 public interface IRabbitMqService
