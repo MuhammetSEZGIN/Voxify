@@ -2,6 +2,7 @@ import { Router } from "express";
 import { VoiceController } from "../controllers/VoiceController";
 import { WebhookController } from "../controllers/WebhookController";
 import { ILiveKitService } from "../services/LiveKitService";
+import { jwtAuth } from "../middlewares/jwtAuth";
 
 export function createVoiceRouter(liveKitService: ILiveKitService): Router {
   const router = Router();
@@ -10,7 +11,7 @@ export function createVoiceRouter(liveKitService: ILiveKitService): Router {
   const webhookController = new WebhookController();
 
   // Token alma endpoint'i
-  router.get("/join-room/:roomId", voiceController.joinRoom);
+  router.get("/join-room/:roomId", jwtAuth, voiceController.joinRoom);
 
   // LiveKit webhook endpoint'i
   router.post("/webhook", webhookController.handleWebhook);

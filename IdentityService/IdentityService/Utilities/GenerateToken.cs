@@ -13,7 +13,10 @@ public class GenerateToken
     public static string GenerateJSONWebToken(ApplicationUser user, IConfiguration _config)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes(_config["JWT:Key"]!); //config dosyasından okuyoruz
+        var jwtKey = _config["JWT:Key"] ?? throw new InvalidOperationException("JWT:Key is missing.");
+        var issuer = _config["JWT:Issuer"] ?? throw new InvalidOperationException("JWT:Issuer is missing.");
+        var audience = _config["JWT:Audience"] ?? throw new InvalidOperationException("JWT:Audience is missing.");
+        var key = Encoding.ASCII.GetBytes(jwtKey);
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
@@ -26,6 +29,8 @@ public class GenerateToken
             SecurityAlgorithms.HmacSha256
         );
         var token = new JwtSecurityToken(
+            issuer: issuer,
+            audience: audience,
             claims: claims,
             expires: DateTime.Now.AddHours(2),
             signingCredentials: creds

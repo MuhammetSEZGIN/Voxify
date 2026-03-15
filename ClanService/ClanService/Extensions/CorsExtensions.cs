@@ -4,20 +4,21 @@ namespace ClanService.Extensions;
 
 public static class CorsExtensions
 {
-    public static IServiceCollection AddCustomCors(this IServiceCollection services)
+    public static IServiceCollection AddCustomCors(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddCors(
-            options =>
+        var allowedOrigins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+            ?? ["https://voxify.com.tr", "https://www.voxify.com.tr"];
+
+        services.AddCors(options =>
+        {
+            options.AddPolicy("AllowAll", policy =>
             {
-                options.AddPolicy("AllowAll", policy =>
-            {
-                policy.SetIsOriginAllowed(origin=>true)
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials();
+                policy.WithOrigins(allowedOrigins)
+                      .AllowAnyMethod()
+                      .AllowAnyHeader()
+                      .AllowCredentials();
             });
-            }
-        );
+        });
         return services;
     }
 }

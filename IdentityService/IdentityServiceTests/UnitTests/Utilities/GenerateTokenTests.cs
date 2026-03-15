@@ -12,7 +12,9 @@ public class GenerateTokenTests
         var config = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                { "JWT:Key", "test-signing-key-12345678901234567890" }
+                { "JWT:Key", "test-signing-key-12345678901234567890" },
+                { "JWT:Issuer", "test-issuer" },
+                { "JWT:Audience", "test-audience" }
             })
             .Build();
      

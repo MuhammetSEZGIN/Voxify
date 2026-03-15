@@ -16,7 +16,8 @@ public class IdentityConsumer : IConsumer<UserUpdatedMessage>
     }
     public async Task Consume(ConsumeContext<UserUpdatedMessage> context)
     {
-        _logger.LogInformation($"Received message: {context.Message.userName} \n {context.Message.AvatarUrl}");
+        _logger.LogInformation("Received UserUpdatedMessage for user {UserName} with avatar {AvatarUrl}.",
+            context.Message.userName, context.Message.AvatarUrl);
         await CreateIdentityAsync(context.Message);
     }
 

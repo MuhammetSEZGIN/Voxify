@@ -11,9 +11,11 @@ const app = express();
 // ── Global Middleware ──
 app.use(cors({
   origin: (origin, callback) => {
-    // Geliştirme aşamasında tüm originlere (IP'lere) izin ver
-    // Canlıya çıkarken burayı kısıtlayabilirsin.
-    callback(null, true);
+    if (!origin || config.corsAllowedOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+    callback(new Error("CORS origin denied"));
   },
   credentials: true, // Headerlarda token vb. taşınması için şart
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],

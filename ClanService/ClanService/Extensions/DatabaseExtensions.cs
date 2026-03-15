@@ -1,5 +1,6 @@
 using ClanService.Data;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace ClanService.Extensions;
 
@@ -9,19 +10,21 @@ public static class DatabaseExtensions
     {
         using var scope = app.Services.CreateScope();
         var services = scope.ServiceProvider;
+        var logger = services.GetRequiredService<ILogger<Program>>();
+
         try
         {
             var db = services.GetRequiredService<ApplicationDbContext>();
-            db.Database.CanConnect();
-            db.Database.EnsureCreated();
+
+            // EnsureCreated and Migrate must not be used together.
+            // In production we rely only on migrations so EF's history table stays consistent.
             db.Database.Migrate();
-            var logger = services.GetRequiredService<ILogger<Program>>();
             logger.LogInformation("Database Migrated");
         }
-        catch
+        catch (Exception ex)
         {
-            var logger = services.GetRequiredService<ILogger<Program>>();
-            logger.LogInformation("An error occured while migrating the database");
+            logger.LogError(ex, "A critical error occurred while migrating the database. Application cannot start.");
+            throw;
         }
 
         return app;

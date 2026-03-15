@@ -12,14 +12,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ClanService.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250221190555_InventationAdd")]
-    partial class InventationAdd
+    [Migration("20260315110947_InitialBaseline")]
+    partial class InitialBaseline
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
+                .HasDefaultSchema("clan")
                 .HasAnnotation("ProductVersion", "9.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
@@ -43,7 +44,7 @@ namespace ClanService.Migrations
 
                     b.HasIndex("ClanId");
 
-                    b.ToTable("Channels");
+                    b.ToTable("Channels", "clan");
                 });
 
             modelBuilder.Entity("ClanService.Models.Clan", b =>
@@ -52,8 +53,14 @@ namespace ClanService.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
                     b.Property<string>("ImagePath")
                         .HasColumnType("text");
+
+                    b.Property<bool>("IsPublic")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -62,7 +69,11 @@ namespace ClanService.Migrations
 
                     b.HasKey("ClanId");
 
-                    b.ToTable("Clans");
+                    b.HasIndex("Description");
+
+                    b.HasIndex("Name");
+
+                    b.ToTable("Clans", "clan");
                 });
 
             modelBuilder.Entity("ClanService.Models.ClanInvitation", b =>
@@ -94,7 +105,7 @@ namespace ClanService.Migrations
 
                     b.HasIndex("ClanId");
 
-                    b.ToTable("ClanInvitations");
+                    b.ToTable("ClanInvitations", "clan");
                 });
 
             modelBuilder.Entity("ClanService.Models.ClanMembership", b =>
@@ -119,7 +130,7 @@ namespace ClanService.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ClanMemberships");
+                    b.ToTable("ClanMemberships", "clan");
                 });
 
             modelBuilder.Entity("ClanService.Models.User", b =>
@@ -137,7 +148,7 @@ namespace ClanService.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", "clan");
                 });
 
             modelBuilder.Entity("ClanService.Models.VoiceChannel", b =>
@@ -164,7 +175,7 @@ namespace ClanService.Migrations
 
                     b.HasIndex("ClanId");
 
-                    b.ToTable("VoiceChannels");
+                    b.ToTable("VoiceChannels", "clan");
                 });
 
             modelBuilder.Entity("ClanService.Models.Channel", b =>

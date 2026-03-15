@@ -1,17 +1,17 @@
 # 1) Build stage
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-WORKDIR /workspace
+WORKDIR /src
 
 # Copy project file and restore dependencies
-COPY ClanService/ClanService/ClanService.csproj ClanService/ClanService/
+COPY PresenceService/PresenceService.csproj PresenceService/
 COPY Shared.Contracts/Shared.Contracts.csproj Shared.Contracts/
-RUN dotnet restore ClanService/ClanService/ClanService.csproj
+RUN dotnet restore PresenceService/PresenceService.csproj
 
 # Copy the rest of the files and publish
-COPY ClanService/ClanService/. ClanService/ClanService/
+COPY PresenceService/. PresenceService/
 COPY Shared.Contracts/. Shared.Contracts/
-WORKDIR /workspace/ClanService/ClanService
-RUN dotnet publish ClanService.csproj -c Release -o /app/publish
+WORKDIR /src/PresenceService
+RUN dotnet publish PresenceService.csproj -c Release -o /app/publish
 
 # 2) Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
@@ -21,10 +21,10 @@ WORKDIR /app
 COPY --from=build /app/publish .
 
 # Copy configuration files
-COPY ClanService/ClanService/appsettings*.json ./
+COPY PresenceService/appsettings*.json ./
 
-# Listen on port 80 instead of 5074
+# Listen on port 80
 EXPOSE 80
 ENV ASPNETCORE_URLS=http://+:80
 
-ENTRYPOINT ["dotnet", "ClanService.dll"]
+ENTRYPOINT ["dotnet", "PresenceService.dll"]

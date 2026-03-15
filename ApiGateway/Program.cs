@@ -28,7 +28,7 @@ builder
             // bu anahtar, JWT oluşturulurken kullanılan anahtarla aynı olmalıdır
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.ASCII.GetBytes(
-                    builder.Configuration["JWT:Key"] ?? "YourTemporaryKeyHere12345678901234567890"
+                    builder.Configuration["JWT:Key"]!
                 )
             ),
 
@@ -36,8 +36,10 @@ builder
                 Token'ı kimin oluşturduğunu (Issuer) ve kimin için oluşturulduğunu (Audience) doğrulama adımlarını devre dışı bırakır.
                 Genellikle API Gateway senaryolarında bu kontroller aşağı akış servislerinde yapılır.
             */
-            ValidateIssuer = false,
-            ValidateAudience = false,
+            ValidateIssuer = true,
+            ValidIssuer = builder.Configuration["JWT:Issuer"],
+            ValidateAudience = true,
+            ValidAudience = builder.Configuration["JWT:Audience"],
             //Token'ın süresinin dolup dolmadığını kontrol eder.
             ValidateLifetime = true,
             // Token süresi kontrolünde sunucular arasındaki saat farklarına tolerans tanır
@@ -50,7 +52,20 @@ builder.Services.AddOcelot(builder.Configuration);
 
 var app = builder.Build();
 
-app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+app.UseCors(policy => policy
+    .WithOrigins("https://voxify.com.tr", "https://www.voxify.com.tr")
+    .AllowAnyMethod()
+    .AllowAnyHeader()
+    .AllowCredentials());
+
+// Gelen isteklerden sahte X-User-* header'larını temizle (header injection koruması)
+app.Use(async (context, next) =>
+{
+    context.Request.Headers.Remove("X-User-Id");
+    context.Request.Headers.Remove("X-User-Name");
+    context.Request.Headers.Remove("X-User-Avatar");
+    await next();
+});
 
 app.UseAuthentication();
 app.UseAuthorization();

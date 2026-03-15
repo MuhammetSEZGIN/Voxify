@@ -1,14 +1,17 @@
 # 1) Build stage
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-WORKDIR /source
+WORKDIR /src
 
 # Copy project file and restore dependencies
-COPY MessageService/*.csproj ./
-RUN dotnet restore
+COPY MessageService/MessageService.csproj MessageService/
+COPY Shared.Contracts/Shared.Contracts.csproj Shared.Contracts/
+RUN dotnet restore MessageService/MessageService.csproj
 
 # Copy the rest of the files and publish
-COPY MessageService/. ./
-RUN dotnet publish -c Release -o /app/publish
+COPY MessageService/. MessageService/
+COPY Shared.Contracts/. Shared.Contracts/
+WORKDIR /src/MessageService
+RUN dotnet publish MessageService.csproj -c Release -o /app/publish
 
 # 2) Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final

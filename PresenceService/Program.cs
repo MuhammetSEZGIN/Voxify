@@ -9,7 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<IPresenceRepository, PresenceRepository>();
 
 builder.Services.AddJwtAuthentication(builder.Configuration);
-builder.Services.AddCustomCors();
+builder.Services.AddCustomCors(builder.Configuration);
 builder.Services.AddSignalR();
 builder.Services.AddRabbitMQServices(builder.Configuration);
 var app = builder.Build();

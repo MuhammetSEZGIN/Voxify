@@ -20,11 +20,12 @@ builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 
-builder.Services.AddCustomCors();
+// Sadece server içi ile iletişim olduğu için cors eklemiyoruz. 
+// builder.Services.AddCustomCors(builder.Configuration);
 
 
 var app = builder.Build();
-app.UseCors("AllowAll");
+// app.UseCors("AllowAll");
 app.UseUserHeaders();
 
 // Configure the HTTP request pipeline.

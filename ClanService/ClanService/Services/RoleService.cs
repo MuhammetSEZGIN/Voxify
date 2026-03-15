@@ -1,4 +1,5 @@
 using System;
+using ClanService.DTOs.ClanDtos;
 using ClanService.Interfaces;
 using ClanService.Interfaces.Repositories;
 namespace ClanService.Services;
@@ -14,8 +15,16 @@ public class RoleService : IRoleService
         _membershipRepository = membershipRepository;
     }
     
+    private static readonly string[] AllowedRoles = [ClanRole.Member, ClanRole.Admin, ClanRole.Owner];
+
     public async Task<bool> UpdateRoleAsync(Guid membershipId, string roleName)
     {
+        if (!AllowedRoles.Contains(roleName))
+        {
+            _logger.LogWarning("Invalid role name '{RoleName}' provided.", roleName);
+            return false;
+        }
+
         try
         {
             var existingMembership = await _membershipRepository.GetByIdAsync(membershipId);

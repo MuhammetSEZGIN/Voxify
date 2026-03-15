@@ -11,14 +11,7 @@ export class VoiceController {
   /**
    * GET /api/voice/join-room/:roomId
    *
-   * Query params:
-   *   - userId   : Kullanıcı ID'si
-   *   - userName : Kullanıcı adı
-   *
    * Dönüş: { token: string }
-   *
-   * Not: İleride [Authorize] middleware eklendiğinde userId ve userName
-   *      doğrudan JWT claim'lerinden alınacaktır.
    */
   joinRoom = async (
     req: Request,
@@ -27,25 +20,22 @@ export class VoiceController {
   ): Promise<void> => {
     try {
       const roomId = req.params.roomId as string;
-      const userId = req.query.userId as string | undefined;
-      const userName = req.query.userName as string | undefined;
+      const user = res.locals.user as { userId: string; userName: string } | undefined;
 
       if (!roomId) {
         res.status(400).json({ error: "roomId is required (route param)" });
         return;
       }
 
-      if (!userId || !userName) {
-        res
-          .status(400)
-          .json({ error: "userId and userName are required (query params)" });
+      if (!user) {
+        res.status(401).json({ error: "Unauthorized user context" });
         return;
       }
 
       const token = await this.liveKitService.generateRoomToken(
         roomId,
-        userId,
-        userName
+        user.userId,
+        user.userName
       );
 
       res.json({ token });

@@ -2,7 +2,7 @@ using MessageService.DTOs;
 using MessageService.Interfaces;
 using MessageService.Interfaces.Services;
 using MessageService.Models;
-using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using MongoDB.Bson;
@@ -11,7 +11,7 @@ namespace MessageService.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [EnableCors("AllowAll")]
+    [Authorize]
     [EnableRateLimiting("fixed")]
     [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     [ProducesResponseType(typeof(MessageDto), StatusCodes.Status200OK)]

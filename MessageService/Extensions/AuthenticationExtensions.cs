@@ -12,7 +12,13 @@ public static class AuthenticationExtensions
         IConfiguration configuration
     )
     {
-        var jwtkey = configuration["jwt:key"];
+        var jwtKey = configuration["Jwt:Key"]
+            ?? throw new InvalidOperationException("Jwt:Key is not configured.");
+        var jwtIssuer = configuration["Jwt:Issuer"]
+            ?? throw new InvalidOperationException("Jwt:Issuer is not configured.");
+        var jwtAudience = configuration["Jwt:Audience"]
+            ?? throw new InvalidOperationException("Jwt:Audience is not configured.");
+
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(
                 options =>
@@ -25,21 +31,25 @@ public static class AuthenticationExtensions
                             (veya güvendiğiniz bir yayıncı tarafından) oluşturulduğunu ve yolda değiştirilmediğini garanti eder.
                             */
                             ValidateIssuerSigningKey = true,
-                            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtkey)),
+                            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
                             /*
                              Token imzasını doğrulamak için kullanılacak anahtarı (jwtKey) belirtir
                             */
-                            ValidateIssuer = false,
-                            ValidateAudience = false
+                            ValidateIssuer = true,
+                            ValidIssuer = jwtIssuer,
+                            ValidateAudience = true,
+                            ValidAudience = jwtAudience,
+                            ValidateLifetime = true,
+                            ClockSkew = TimeSpan.Zero
                         };
                         options.Events = new JwtBearerEvents
                         {
                             OnMessageReceived = context =>
                             {
                                 var accessToken = context.Request.Query["access_token"];
+                                var path = context.HttpContext.Request.Path;
                                 if (!string.IsNullOrEmpty(accessToken) &&
-                                (context.HttpContext.WebSockets.IsWebSocketRequest ||
-                                 context.Request.Headers["Accespt"] == "text/event-stream"))
+                                    path.StartsWithSegments("/messagehub"))
                                     context.Token = accessToken;
                                 return Task.CompletedTask;
                             }

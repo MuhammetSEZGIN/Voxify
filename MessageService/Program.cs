@@ -35,7 +35,7 @@ builder.Services.AddSignalR();
 // Rate Limiting
 builder.Services.AddCustomRateLimiter();
 // Cors
-builder.Services.AddCustomCors();
+builder.Services.AddCustomCors(builder.Configuration);
 
 var app = builder.Build();
 
@@ -46,7 +46,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseRouting();
-app.UseCors("AllowAll");
+app.UseCors();
 
 app.MapHealthChecks("/health", new HealthCheckOptions()
 {
@@ -72,6 +72,6 @@ app.MapHealthChecks("/health", new HealthCheckOptions()
 app.UseAuthentication();
 app.UseRateLimiter();
 app.UseAuthorization();
-app.MapHub<MessageHub>("/messagehub");
+app.MapHub<MessageHub>("/messagehub").RequireCors("AllowAll");
 app.MapControllers();
 app.Run();

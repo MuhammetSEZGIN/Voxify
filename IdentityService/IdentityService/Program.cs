@@ -27,7 +27,6 @@ var logger = loggerFactory.CreateLogger<Program>();
 builder.Services.AddDatabaseConfiguration(builder.Configuration, logger);
 builder.Services.AddIdentityConfiguration();
 builder.Services.AddJwtAuthentication(builder.Configuration);
-builder.Services.AddCorsConfiguration();
 builder.Services.AddApplicationServices();
 
 
@@ -53,7 +52,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
