@@ -26,11 +26,15 @@ function requireEnv(name: string): string {
 
 const config: Config = {
   port: parseInt(process.env.PORT ?? "4000", 10),
-  corsAllowedOrigins: (process.env.CORS_ALLOWED_ORIGINS
-    ?? "http://localhost:5000,https://voxify.com.tr,https://www.voxify.com.tr")
-    .split(",")
-    .map((origin) => origin.trim())
-    .filter((origin) => origin.length > 0),
+  corsAllowedOrigins: Array.from(new Set([
+    ...(process.env.CORS_ALLOWED_ORIGINS ?? "").split(","),
+    "http://localhost:5000",
+    "https://voxify.com.tr",
+    "https://www.voxify.com.tr",
+    "http://localhost:5173",
+    "tauri://localhost",
+    "https://tauri.localhost"
+  ])).map((origin) => origin.trim()).filter((origin) => origin.length > 0),
   jwt: {
     key: requireEnv("JWT_KEY"),
     issuer: requireEnv("JWT_ISSUER"),

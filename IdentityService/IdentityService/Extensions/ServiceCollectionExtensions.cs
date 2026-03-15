@@ -60,16 +60,31 @@ namespace IdentityService.Extensions
 
         public static IServiceCollection AddCorsConfiguration(this IServiceCollection services, IConfiguration configuration)
         {
-            var allowedOrigins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
-                ?? ["http://localhost:5000", "https://voxify.com.tr", "https://www.voxify.com.tr"];
+            var configOrigins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+            var defaultOrigins = new[] { "http://localhost:5000", "https://voxify.com.tr", "https://www.voxify.com.tr", "http://localhost:5173", "tauri://localhost", "https://tauri.localhost" };
+            var allowedOrigins = configOrigins.Union(defaultOrigins).ToArray();
 
             services.AddCors(options =>
             {
                 options.AddPolicy(
+                    "AllowTauri",
+                    policy =>
+                    {
+                        policy.WithOrigins(allowedOrigins)
+                              .AllowAnyMethod()
+                              .AllowAnyHeader()
+                              .AllowCredentials(); // Credentials allow is often needed
+                    }
+                );
+                
+                options.AddPolicy(
                     "AllowAll",
                     policy =>
                     {
-                        policy.WithOrigins(allowedOrigins).AllowAnyMethod().AllowAnyHeader();
+                        policy.WithOrigins(allowedOrigins)
+                              .AllowAnyMethod()
+                              .AllowAnyHeader()
+                              .AllowCredentials();
                     }
                 );
             });
