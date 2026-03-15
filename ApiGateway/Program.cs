@@ -15,7 +15,22 @@ else
     builder.Configuration.AddJsonFile("ocelot.json", optional: false, reloadOnChange: true);
 }
 
-builder.Services.AddCors();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowTauri", policy =>
+    {
+        policy.WithOrigins(
+                "http://localhost:5173",
+                "tauri://localhost",
+                "https://tauri.localhost",
+                "https://voxify.com.tr",
+                "https://www.voxify.com.tr"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
 builder
     .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -52,11 +67,7 @@ builder.Services.AddOcelot(builder.Configuration);
 
 var app = builder.Build();
 
-app.UseCors(policy => policy
-    .WithOrigins("https://voxify.com.tr", "https://www.voxify.com.tr")
-    .AllowAnyMethod()
-    .AllowAnyHeader()
-    .AllowCredentials());
+app.UseCors("AllowTauri");
 
 // Gelen isteklerden sahte X-User-* header'larını temizle (header injection koruması)
 app.Use(async (context, next) =>
