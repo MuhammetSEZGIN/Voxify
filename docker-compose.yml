@@ -259,3 +259,5 @@ volumes:
   message_mongo_data:
   certbot_www:
   certbot_conf:
+    external: true
+    name: Sesver_certbot_conf
