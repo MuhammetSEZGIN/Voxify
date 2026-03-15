@@ -46,7 +46,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseRouting();
-app.UseCors();
+app.UseCors("AllowTauri");
 
 app.MapHealthChecks("/health", new HealthCheckOptions()
 {
@@ -72,6 +72,6 @@ app.MapHealthChecks("/health", new HealthCheckOptions()
 app.UseAuthentication();
 app.UseRateLimiter();
 app.UseAuthorization();
-app.MapHub<MessageHub>("/messagehub").RequireCors("AllowAll");
+app.MapHub<MessageHub>("/messagehub").RequireCors("AllowTauri");
 app.MapControllers();
 app.Run();

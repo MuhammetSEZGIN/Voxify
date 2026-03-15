@@ -15,11 +15,11 @@ builder.Services.AddRabbitMQServices(builder.Configuration);
 var app = builder.Build();
 
 app.UseRouting();
-app.UseCors("AllowAll");
+app.UseCors("AllowTauri");
 app.UseWebSockets();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapHub<PresenceHub>("/hubs/presence");
+app.MapHub<PresenceHub>("/hubs/presence").RequireCors("AllowTauri");
 
 app.Run();
 
