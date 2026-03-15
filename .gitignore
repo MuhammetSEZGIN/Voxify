@@ -63,6 +63,12 @@ npm-debug.log*
 
 # Environment variables
 .env
+!.env.example
+
+# Deployment & Infrastructure (Should be tracked)
+!docker-compose*.yml
+!nginx/
+!livekit.yaml
 
 # Published files
 **/publish/
