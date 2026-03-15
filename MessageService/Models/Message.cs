@@ -13,6 +13,8 @@ public class Message
     [BsonRepresentation(BsonType.String)]
     [BsonElement("user_id")]
     public string SenderId { get; set; }
+    [BsonRepresentation(BsonType.String)]
+    public string ClanId { get; set; }
     public string Text { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     [BsonRepresentation(BsonType.String)]

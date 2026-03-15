@@ -13,7 +13,8 @@ public class VoiceChannelRepository : Repository<VoiceChannel, Guid>, IVoiceChan
     public async Task<IEnumerable<VoiceChannel>> GetVoiceChannelsByClanIdAsync(Guid id)
     {
         return await _context.VoiceChannels
-        .Where(x=>x.ClanId== id)
-        .ToListAsync();    
+            .AsNoTracking()
+            .Where(x => x.ClanId == id)
+            .ToListAsync();
     }
 }

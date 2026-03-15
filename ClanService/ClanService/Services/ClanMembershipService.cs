@@ -1,6 +1,7 @@
 using ClanService.Models;
 using ClanService.Interfaces;
 using ClanService.Interfaces.Repositories;
+using ClanService.Interfaces.Services;
 
 namespace ClanService.Services
 {
@@ -9,7 +10,7 @@ namespace ClanService.Services
         private readonly IClanMembershipRepository _membershipRepository;
         private readonly IUserRepository _userRepository;
         private readonly ILogger<ClanMembershipService> _logger;
-        
+
         public ClanMembershipService(
             IClanMembershipRepository membershipRepository,
             IUserRepository userRepository,
@@ -22,12 +23,12 @@ namespace ClanService.Services
 
         public async Task<(ClanMembership, string)> AddMemberAsync(ClanMembership membership)
         {
-            try  
+            try
             {
-                var existingMembership = await _membershipRepository.GetMemberByUserAndClanIdAsync( membership.UserId,membership.ClanId);
+                var existingMembership = await _membershipRepository.GetMemberByUserAndClanIdAsync(membership.UserId, membership.ClanId);
                 if (existingMembership != null)
                     return (null, "User is already a member of this clan.");
-                    
+
                 var existingUser = await _userRepository.GetByIdAsync(membership.UserId);
                 if (existingUser == null)
                     return (null, "User not found.");
@@ -51,7 +52,7 @@ namespace ClanService.Services
 
         public async Task<List<ClanMembership>> GetMembershipsByClanIdAsync(Guid clanId)
         {
-            var result= await _membershipRepository.GetMembersByClanIdAsync(clanId);
+            var result = await _membershipRepository.GetMembersByClanIdAsync(clanId);
             return result.ToList();
         }
 

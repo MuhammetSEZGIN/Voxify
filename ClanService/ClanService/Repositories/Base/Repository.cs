@@ -24,10 +24,11 @@ public class Repository<T, Tid> : IRepository<T, Tid> where T : class
         return entity;
     }
 
-    public async Task DeleteAsync(T entity)
+    public async Task<T> DeleteAsync(T entity)
     {
         _dbSet.Remove(entity);
         await _context.SaveChangesAsync();
+        return entity;
     }
 
     public async Task<IEnumerable<T>> GetAllAsync()

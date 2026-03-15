@@ -1,6 +1,4 @@
-using ClanService.DTOs;
-using Identity.DTOs;
-using MessageService.Data;
+using Shared.Contracts;
 using MessageService.Interfaces.Repositories.IUserRepository;
 using MessageService.Interfaces.Services;
 using MessageService.Models;
@@ -31,14 +29,14 @@ public class RabbitMqService : IRabbitMqService
                 {
                     Id = userUpdatedMessage.userId,
                     UserName = userUpdatedMessage.userName,
-                    AvatarUrl = userUpdatedMessage.avatarUrl
+                    AvatarUrl = userUpdatedMessage.AvatarUrl
                 });
                 _logger.LogInformation("New user added {0}", userUpdatedMessage.userName);
             }
             else
             {
                 user.UserName = userUpdatedMessage.userName;
-                user.AvatarUrl = userUpdatedMessage.avatarUrl;
+                user.AvatarUrl = userUpdatedMessage.AvatarUrl;
                 await _userRepository.UpdateAsync(userUpdatedMessage.userId,user);
 
                 _logger.LogInformation("User updated {0}", userUpdatedMessage.userName);

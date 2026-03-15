@@ -1,6 +1,5 @@
 using System.Net;
 using IdentityService.DTOs;
-using IdentityService.Extensions;
 using IdentityService.Interfaces;
 using IdentityService.Models;
 using IdentityService.Utilities;
@@ -45,6 +44,17 @@ public class EmailService : IEmailService
         {
             // appsettings veya User Secrets'tan SMTP ayarlarını çek
             var smtpSettings = _configuration.GetSection("Smtp");
+            var isEnabled = smtpSettings.GetValue<bool>("Enabled", true);
+            
+            // Eğer mail servisi devre dışı ise, işlem yapmadan başarılı response döndür
+            if (!isEnabled)
+            {
+                _logger.LogInformation("Mail servisi devre dışı. E-posta gönderilmedi: {Email}", toEmail);
+                return ApiResponse<object>.Success(
+                    "E-posta servisi devre dışı.",
+                    (int)HttpStatusCode.OK
+                );
+            }
             var fromAddress = smtpSettings["FromAddress"];
             var host = smtpSettings["Host"];
             var port = int.Parse(smtpSettings["Port"]);
@@ -122,15 +132,23 @@ public class EmailService : IEmailService
                     result.Errors.Select(e => e.Description)
                 );
             }
-            var accessToken = _configuration.GenerateJwtToken(user);
             _logger.LogInformation("Email confirmed for user: {0}", user.UserName);
             var refreshTokenResult = await _refreshTokenService.CreateUserRefreshTokenAsync(
                 user.Id,
                 "Email Confirmation Device", // Default device info
                 _ipAddressService.GetClientIpAddress()
             );
+            if (!refreshTokenResult.IsSuccessfull)
+            {
+                _logger.LogWarning("Failed to create refresh token after email confirmation for user: {0}", user.UserName);
+                return ApiResponse<object>.Failed(
+                    "Email confirmed but failed to create session tokens.",
+                    refreshTokenResult.Errors,
+                    refreshTokenResult.StatusCode
+                );
+            }
             return ApiResponse<object>.Success(
-                new { AccessToken = accessToken, RefreshToken = refreshTokenResult },
+                new { AccessToken = refreshTokenResult.Data.AccessToken, RefreshToken = refreshTokenResult.Data.RefreshToken },
                 "Email confirmed successfully."
             );
         }

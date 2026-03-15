@@ -39,8 +39,10 @@ public class MessageService : IMessageService
                 _logger.LogWarning("Attempted to create message with invalid channel ID");
                 return ServiceResult<Message>.BadRequest("Channel ID is required");
             }
-            message.Id = ObjectId.GenerateNewId();
-            message.CreatedAt = DateTime.UtcNow;
+            if (message.Id == ObjectId.Empty)
+                message.Id = ObjectId.GenerateNewId();
+            if (message.CreatedAt == default)
+                message.CreatedAt = DateTime.UtcNow;
             await _messageRepository.AddAsync(message);
             _logger.LogInformation("Message {MessageId} created successfully for channel {ChannelId}",
                 message.Id, message.ChannelId);

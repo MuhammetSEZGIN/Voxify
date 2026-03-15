@@ -63,8 +63,9 @@ public class RefreshTokenService : IRefreshTokenService
                 .UserRefreshTokens.Where(rt => rt.UserId == userId)
                 .ToListAsync();
 
-            // Süresi dolmuş tokenleri temizle
-            var expiredTokens = userTokens
+            if (userTokens.Count > 0)
+            {
+                var expiredTokens = userTokens
                 .Where(rt => rt.RefreshTokenExpiryTime < DateTime.UtcNow)
                 .ToList();
             if (expiredTokens.Any())
@@ -87,7 +88,8 @@ public class RefreshTokenService : IRefreshTokenService
                     _context.UserRefreshTokens.Remove(tokenToRemove);
                 }
             }
-
+            }
+            
             // Yeni token oluştur
             var refreshToken = new UserRefreshToken
             {
@@ -95,8 +97,8 @@ public class RefreshTokenService : IRefreshTokenService
                 RefreshToken = await GenerateRefreshTokenAsync(),
                 RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7),
                 CreatedAt = DateTime.UtcNow,
-                CreatedByIp = ipAddress,
-                DeviceInfo = deviceInfo,
+                CreatedByIp = ipAddress ?? "unknown",
+                DeviceInfo = deviceInfo ?? "unknown",
                 UserId = user.Id,
             };
 

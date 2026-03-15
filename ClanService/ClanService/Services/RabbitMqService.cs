@@ -1,6 +1,6 @@
 using System;
 using ClanService.Interfaces;
-using Identity.DTOs;
+using Shared.Contracts;
 using ClanService.Models;
 using ClanService.Interfaces.Repositories;
 
@@ -17,20 +17,32 @@ public class RabbitMqService : IRabbitMqService
     }
 
 
-    public async Task ConsumeUserInformation(UserUpdatedMessage userUpdatedMessage){
-        var user = new User
+    public async Task ConsumeUserInformation(UserUpdatedMessage userUpdatedMessage)
+    {
+        try
         {
-            Id = userUpdatedMessage.userId,
-            Username = userUpdatedMessage.userName,
-            AvatarUrl = userUpdatedMessage.AvatarUrl
-        };
-        
-        try{
-            await _userRepository.AddAsync(user);
-            _logger.LogInformation("User information saved successfully");
+            var existing = await _userRepository.GetByIdAsync(userUpdatedMessage.userId);
+            var user = new User
+            {
+                Id = userUpdatedMessage.userId,
+                Username = userUpdatedMessage.userName,
+                AvatarUrl = userUpdatedMessage.AvatarUrl
+            };
+
+            if (existing != null)
+            {
+                await _userRepository.UpdateAsync(user);
+                _logger.LogInformation("User {UserId} updated successfully.", userUpdatedMessage.userId);
+            }
+            else
+            {
+                await _userRepository.AddAsync(user);
+                _logger.LogInformation("User {UserId} created successfully.", userUpdatedMessage.userId);
+            }
         }
-        catch (Exception e){
-            _logger.LogError(e, "Error while saving user information");       
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error while saving user information for {UserId}.", userUpdatedMessage.userId);
         }
     }
 }

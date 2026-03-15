@@ -1,6 +1,5 @@
 using System;
-using Identity.DTOs;
-
+using Shared.Contracts;
 namespace ClanService.Interfaces;
 
 public interface IRabbitMqService

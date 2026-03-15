@@ -11,6 +11,7 @@ public class ClanRepository : Repository<Clan, Guid>, IClanRepository
     {
     }
 
+
     public async Task<IEnumerable<Clan>> GetClansByUserIdAsync(string id)
     {
         return await _context.ClanMemberships

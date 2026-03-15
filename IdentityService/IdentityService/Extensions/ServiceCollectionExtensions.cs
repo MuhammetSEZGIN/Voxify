@@ -47,7 +47,7 @@ namespace IdentityService.Extensions
 
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
-            services.AddScoped<IdentityProducer>();
+            services.AddScoped<IIdentityProducer, IdentityProducer>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IdentityDbContext>();
             services.AddScoped<IEmailService, EmailService>();
@@ -58,15 +58,18 @@ namespace IdentityService.Extensions
             return services;
         }
 
-        public static IServiceCollection AddCorsConfiguration(this IServiceCollection services)
+        public static IServiceCollection AddCorsConfiguration(this IServiceCollection services, IConfiguration configuration)
         {
+            var allowedOrigins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+                ?? ["http://localhost:5000", "https://voxify.com.tr", "https://www.voxify.com.tr"];
+
             services.AddCors(options =>
             {
                 options.AddPolicy(
                     "AllowAll",
                     policy =>
                     {
-                        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+                        policy.WithOrigins(allowedOrigins).AllowAnyMethod().AllowAnyHeader();
                     }
                 );
             });

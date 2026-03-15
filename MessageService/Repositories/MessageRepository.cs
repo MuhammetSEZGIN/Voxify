@@ -105,12 +105,14 @@ public class MessageRepository : Repository<Message, ObjectId>, IMessageReposito
     }
     public async Task<bool> DeleteMessagesOfChannelByChannelId(string channelId)
     {
-        var messages = await _context.Messages.Find(x => x.ChannelId == channelId).ToListAsync();
-        if (messages.Count == 0)
-        {
-            return false;
-        }
-        await _context.Messages.DeleteManyAsync(x => x.ChannelId == channelId);
-        return true;
+        var result = await _context.Messages.DeleteManyAsync(x => x.ChannelId == channelId);
+        return result.DeletedCount > 0;
     }
+
+    public async Task<bool> DeleteMessagesByClanId(string clanId)
+    {
+        var result = await _context.Messages.DeleteManyAsync(x => x.ClanId == clanId);
+        return result.IsAcknowledged && result.DeletedCount > 0;
+    }
+
 }

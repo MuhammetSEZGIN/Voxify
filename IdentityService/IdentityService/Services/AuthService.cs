@@ -16,7 +16,7 @@ public class AuthService : IAuthService
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IConfiguration _config;
-    private readonly IdentityProducer _messagePublisher;
+    private readonly IIdentityProducer _messagePublisher;
     private readonly ILogger<AuthService> _logger;
     private readonly IIpAddressService _ipAddressService;
     private readonly IRefreshTokenService _refreshTokenService;
@@ -25,7 +25,7 @@ public class AuthService : IAuthService
     public AuthService(
         UserManager<ApplicationUser> userManager,
         IConfiguration config,
-        IdentityProducer messagePublisher,
+        IIdentityProducer messagePublisher,
         ILogger<AuthService> logger,
         IdentityDbContext context,
         IIpAddressService ipAddressService,

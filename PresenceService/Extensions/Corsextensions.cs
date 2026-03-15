@@ -1,0 +1,26 @@
+using System;
+
+namespace PresenceService.Extensions;
+
+public static class CorsExtensions
+{
+    public static IServiceCollection AddCustomCors(this IServiceCollection services, IConfiguration configuration)
+    {
+        var allowedOrigins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+            ?? ["https://voxify.com.tr", "https://www.voxify.com.tr", "http://localhost:5173"];
+
+        services.AddCors(
+            options =>
+            {
+                options.AddPolicy("AllowAll", policy =>
+            {
+                policy.WithOrigins(allowedOrigins)
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
+            });
+            }
+        );
+        return services;
+    }
+}

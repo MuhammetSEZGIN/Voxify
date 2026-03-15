@@ -3,11 +3,13 @@ using MessageService.DTOs;
 using MessageService.Interfaces.Services;
 using MessageService.Models;
 using MessageService.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using MongoDB.Bson;
 
 namespace MessageService.Hubs;
 
+[Authorize]
 public class MessageHub : Hub
 {
     private readonly IMessageService _messageService;
@@ -26,7 +28,7 @@ public class MessageHub : Hub
         _messageService = messageService;
         _logger = logger;
     }
-    public async Task SendMessage(string channelId, string senderId, string userName, string message)
+    public async Task SendMessage(string channelId, string clanId, string senderId, string userName, string message)
     {
         if (string.IsNullOrWhiteSpace(message))
         {
@@ -34,40 +36,51 @@ public class MessageHub : Hub
             return;
         }
 
-        var messageDto = new MessageDto
+        try
         {
-            Id = ObjectId.GenerateNewId(),
-            UserName = userName,
-            ChannelId = channelId,
-            SenderId = senderId,
-            Text = message,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        await Clients.Group(channelId.ToString()).SendAsync("ReceiveMessage", messageDto);
-        var newMessage = new Message
-        {
-            Id = messageDto.Id,
-            ChannelId = channelId,
-            SenderId = senderId,
-            Text = message,
-            CreatedAt = DateTime.UtcNow
-        };
-        await _backgroundTaskQueue.QueueBackgroundWorkItemAsync(async token =>
-        {
-            try
+            var messageDto = new MessageDto
             {
-                using var scope = _serviceScopeFactory.CreateScope();
-                var messageService = scope.ServiceProvider.GetRequiredService<IMessageService>();
-                await messageService.CreateMessage(newMessage);
-                _logger.LogInformation("Message {MessageId} succesfully saved to database", newMessage.Id);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Error saving message to database");
-            }
-        });
+                Id = ObjectId.GenerateNewId(),
+                ClanId = clanId,
+                UserName = userName,
+                ChannelId = channelId,
+                SenderId = senderId,
+                Text = message,
+                CreatedAt = DateTime.UtcNow
+            };
 
+            await Clients.Group(channelId.ToString()).SendAsync("ReceiveMessage", messageDto);
+
+            var newMessage = new Message
+            {
+                Id = messageDto.Id,
+                ClanId = clanId,
+                ChannelId = channelId,
+                SenderId = senderId,
+                Text = message,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _backgroundTaskQueue.QueueBackgroundWorkItemAsync(async token =>
+            {
+                try
+                {
+                    using var scope = _serviceScopeFactory.CreateScope();
+                    var messageService = scope.ServiceProvider.GetRequiredService<IMessageService>();
+                    await messageService.CreateMessage(newMessage);
+                    _logger.LogInformation("Message {MessageId} succesfully saved to database", newMessage.Id);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Error saving message to database");
+                }
+            });
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error in SendMessage for channel {ChannelId} by {UserName}", channelId, userName);
+            throw;
+        }
     }
 
     public async Task UpdateMessage(ObjectId messageId, string newContent)
@@ -81,7 +94,9 @@ public class MessageHub : Hub
         {
             try
             {
-                var result = await _messageService.UpdateMessage(messageId, newContent);
+                using var scope = _serviceScopeFactory.CreateScope();
+                var messageService = scope.ServiceProvider.GetRequiredService<IMessageService>();
+                var result = await messageService.UpdateMessage(messageId, newContent);
                 if (result == null)
                 {
                     _logger.LogWarning("Message {MessageId} not found for update", messageId);
@@ -91,6 +106,7 @@ public class MessageHub : Hub
                 var messageDto = new MessageDto
                 {
                     Id = result.Data.Id,
+                    ClanId = result.Data.ClanId,
                     ChannelId = result.Data.ChannelId,
                     SenderId = result.Data.SenderId,
                     Text = result.Data.Text,
@@ -103,7 +119,6 @@ public class MessageHub : Hub
                 _logger.LogError(e, "Error updating message {MessageId}", messageId);
                 await Clients.Caller.SendAsync("MessageUpdateFailed", messageId);
             }
-
         });
     }
 

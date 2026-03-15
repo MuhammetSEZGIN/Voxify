@@ -1,6 +1,0 @@
-@VoiceService_HostAddress = http://localhost:5044
-
-GET {{VoiceService_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

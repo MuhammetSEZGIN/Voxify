@@ -9,7 +9,6 @@ public class SubmitIdentityConsumeDefinition : ConsumerDefinition<IdentityConsum
     public SubmitIdentityConsumeDefinition()
     {
         EndpointName= "Message-Service-UserUpdatedQueue";
-        ConcurrentMessageLimit = 1;
 
     }
      protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator,

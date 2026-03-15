@@ -1,101 +1,261 @@
+
 services:
-  postgres:
+  # 1. PostgreSQL - Clan Service İçin
+  clanservice-db:
     image: postgres:latest
+    container_name: clanservice-postgres
+    restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: sesver
-    ports:
-      - "5432:5432"
+      POSTGRES_USER: ${CLAN_DB_USER}
+      POSTGRES_PASSWORD: ${CLAN_DB_PASSWORD}
+      POSTGRES_DB: ${CLAN_DB_NAME}
+    # Port sadece Docker internal network'te erişilebilir (dışarı kapalı)
+    expose:
+      - "5432"
     volumes:
-      - ./postgres-init:/docker-entrypoint-initdb.d
-      - postgres-data:/var/lib/postgresql/data
+      - clan_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${CLAN_DB_USER} -d ${CLAN_DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-  rabbitmq:
-    image: rabbitmq:3-management
-    ports:
-      - "5672:5672"  # AMQP
-      - "15672:15672"  # Management interface
+  # 2. PostgreSQL - Identity Service İçin
+  identity-db:
+    image: postgres:latest
+    container_name: identity-postgres
+    restart: always
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      POSTGRES_USER: ${IDENTITY_DB_USER}
+      POSTGRES_PASSWORD: ${IDENTITY_DB_PASSWORD}
+      POSTGRES_DB: ${IDENTITY_DB_NAME}
+    expose:
+      - "5432"
+    volumes:
+      - identity_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${IDENTITY_DB_USER} -d ${IDENTITY_DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-  apigateway:
-    build:
-      context: .
-      dockerfile: ApiGateway/Dockerfile
+  # 3. MongoDB - Message Service İçin
+  message-db:
+    image: mongo:latest
+    container_name: message-mongodb
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+    expose:
+      - "27017"
+    volumes:
+      - message_mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+
+  # 4. Redis - LiveKit'in Hızlı Bellek Yönetimi İçin
+  livekit-redis:
+    image: redis:7-alpine
+    container_name: livekit-redis
+    restart: always
+    expose:
+      - "6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+# 5. LiveKit Server - Ses ve Video SFU
+  livekit-server:
+    image: livekit/livekit-server:latest
+    container_name: livekit-server
+    restart: always
+    command: ["--config", "/etc/livekit.yaml", "--node-ip", "${LIVEKIT_NODE_IP}"]
+    environment:
+      LIVEKIT_KEYS: "${LIVEKIT_API_KEY}: ${LIVEKIT_API_SECRET}"
+      REDIS_HOST: "livekit-redis:6379"
+      NODE_IP: "${LIVEKIT_NODE_IP}"
+    volumes:
+      - ./livekit.yaml:/etc/livekit.yaml:ro
     ports:
-      - "5000:5000"
+      - "7880:7880"      # HTTP API / Signaling
+      - "7881:7881"      # WebRTC over TCP
+      - "7882:7882/udp"  # WebRTC over UDP (Asıl ses verisi)
     depends_on:
-      - clanservice
-      - identityservice
-      - messageservice
-      - voiceservice
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      livekit-redis:
+        condition: service_healthy
 
+  # 6. ClanService
   clanservice:
     build:
       context: .
-      dockerfile: ClanService/Dockerfile
-    ports:
-      - "5074:80"
-    depends_on:
-      - postgres
-      - rabbitmq
+      dockerfile: ClanService/ClanService/Dockerfile
+    container_name: clanservice
+    restart: always
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Host=postgres;Database=clanservicedb;Username=postgres;Password=postgres
-      - RabbitMQ__HostName=rabbitmq
-      - RabbitMQ__UserName=guest
-      - RabbitMQ__Password=guest
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "Host=clanservice-db;Port=5432;Database=${CLAN_DB_NAME};Username=${CLAN_DB_USER};Password=${CLAN_DB_PASSWORD}"
+      RabbitMQ__HostName: "${RABBITMQ_HOST}"
+      RabbitMQ__VirtualHost: "${RABBITMQ_VHOST}"
+      RabbitMQ__Port: "${RABBITMQ_PORT}"
+      RabbitMQ__UserName: "${RABBITMQ_USER}"
+      RabbitMQ__Password: "${RABBITMQ_PASSWORD}"
+      RabbitMQ__QueueName: "${RABBITMQ_QUEUE}"
+    depends_on:
+      clanservice-db:
+        condition: service_healthy
+
+  # 7. IdentityService
   identityservice:
     build:
       context: .
-      dockerfile: IdentityService/Dockerfile
-    ports:
-      - "5158:80"
-    depends_on:
-      - postgres
-      - rabbitmq
+      dockerfile: IdentityService/IdentityService/Dockerfile
+    container_name: identityservice
+    restart: always
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Host=postgres;Database=identityservicedb;Username=postgres;Password=postgres
-      - RabbitMQ__HostName=rabbitmq
-      - RabbitMQ__UserName=guest
-      - RabbitMQ__Password=guest
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "Host=identity-db;Port=5432;Database=${IDENTITY_DB_NAME};Username=${IDENTITY_DB_USER};Password=${IDENTITY_DB_PASSWORD}"
+      Jwt__Key: "${JWT_KEY}"
+      Jwt__Issuer: "${JWT_ISSUER}"
+      Jwt__Audience: "${JWT_AUDIENCE}"
+      RabbitMq__Host: "${RABBITMQ_HOST}"
+      RabbitMq__VirtualHost: "${RABBITMQ_VHOST}"
+      RabbitMq__Port: "${RABBITMQ_PORT}"
+      RabbitMq__UserName: "${RABBITMQ_USER}"
+      RabbitMq__Password: "${RABBITMQ_PASSWORD}"
+      RabbitMq__QueueName: "${RABBITMQ_QUEUE}"
+    depends_on:
+      identity-db:
+        condition: service_healthy
 
+  # 8. MessageService
   messageservice:
     build:
       context: .
       dockerfile: MessageService/Dockerfile
-    ports:
-      - "5107:80"
-    depends_on:
-      - postgres
-      - rabbitmq
+    container_name: messageservice
+    restart: always
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Host=postgres;Database=messageservicedb;Username=postgres;Password=postgres
-      - RabbitMQ__HostName=rabbitmq
-      - RabbitMQ__UserName=guest
-      - RabbitMQ__Password=guest
+      ASPNETCORE_ENVIRONMENT: Production
+      Jwt__Key: "${JWT_KEY}"
+      Jwt__Issuer: "${JWT_ISSUER}"
+      Jwt__Audience: "${JWT_AUDIENCE}"
+      Cors__AllowedOrigins__0: "${CORS_ORIGIN_1}"
+      Cors__AllowedOrigins__1: "${CORS_ORIGIN_2}"
+      MongoDbConnection__ConnectionString: "mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@message-db:27017"
+      MongoDbConnection__DatabaseName: "messageservicedb"
+      MongoDbConnection__UsersCollection: "users"
+      MongoDbConnection__MessagesCollection: "messages"
+      RabbitMQ__HostName: "${RABBITMQ_HOST}"
+      RabbitMQ__VirtualHost: "${RABBITMQ_VHOST}"
+      RabbitMQ__Port: "${RABBITMQ_PORT}"
+      RabbitMQ__UserName: "${RABBITMQ_USER}"
+      RabbitMQ__Password: "${RABBITMQ_PASSWORD}"
+    expose:
+      - "80"
+    depends_on:
+      message-db:
+        condition: service_healthy
 
-  voiceservice:
+  # 9. PresenceService
+  presenceservice:
     build:
       context: .
-      dockerfile: VoiceService/Dockerfile
-    ports:
-      - "5044:80"
-    depends_on:
-      - postgres
-      - rabbitmq
+      dockerfile: PresenceService/Dockerfile
+    container_name: presenceservice
+    restart: always
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Host=postgres;Database=voiceservicedb;Username=postgres;Password=postgres
-      - RabbitMQ__HostName=rabbitmq
-      - RabbitMQ__UserName=guest
-      - RabbitMQ__Password=guest
+      ASPNETCORE_ENVIRONMENT: Production
+      Jwt__Key: "${JWT_KEY}"
+      Jwt__Issuer: "${JWT_ISSUER}"
+      Jwt__Audience: "${JWT_AUDIENCE}"
+      Cors__AllowedOrigins__0: "${CORS_ORIGIN_1}"
+      Cors__AllowedOrigins__1: "${CORS_ORIGIN_2}"
+      RabbitMQ__HostName: "${RABBITMQ_HOST}"
+      RabbitMQ__VirtualHost: "${RABBITMQ_VHOST}"
+      RabbitMQ__Port: "${RABBITMQ_PORT}"
+      RabbitMQ__UserName: "${RABBITMQ_USER}"
+      RabbitMQ__Password: "${RABBITMQ_PASSWORD}"
+    expose:
+      - "80"
+
+  # 10. VoiceService
+  voiceservice:
+    build:
+      context: VoiceService
+      dockerfile: Dockerfile
+    container_name: voiceservice
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: "4000"
+      JWT_KEY: "${JWT_KEY}"
+      JWT_ISSUER: "${JWT_ISSUER}"
+      JWT_AUDIENCE: "${JWT_AUDIENCE}"
+      CORS_ALLOWED_ORIGINS: "${CORS_ORIGIN_1},${CORS_ORIGIN_2}"
+      LIVEKIT_API_KEY: "${LIVEKIT_API_KEY}"
+      LIVEKIT_API_SECRET: "${LIVEKIT_API_SECRET}"
+      LIVEKIT_URL: "http://livekit-server:7880"
+    depends_on:
+      - livekit-server
+
+  # 11. ApiGateway
+  apigateway:
+    build:
+      context: .
+      dockerfile: ApiGateway/Dockerfile
+    container_name: apigateway
+    restart: always
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      JWT__Key: "${JWT_KEY}"
+      JWT__Issuer: "${JWT_ISSUER}"
+      JWT__Audience: "${JWT_AUDIENCE}"
+    ports:
+      - "5000:5000"
+    depends_on:
+      - identityservice
+      - messageservice
+      - clanservice
+      - voiceservice
+
+  # 12. Nginx Reverse Proxy (SSL + WebSocket)
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-proxy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - certbot_www:/var/www/certbot:ro
+      - certbot_conf:/etc/letsencrypt:ro
+    environment:
+      SERVER_DOMAIN: ${SERVER_DOMAIN}
+    depends_on:
+      - apigateway
+      - messageservice
+      - presenceservice
+
+  # 13. Certbot (Let's Encrypt SSL)
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - certbot_www:/var/www/certbot
+      - certbot_conf:/etc/letsencrypt
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
 volumes:
-  postgres-data:
+  clan_pg_data:
+  identity_pg_data:
+  message_mongo_data:
+  certbot_www:
+  certbot_conf:

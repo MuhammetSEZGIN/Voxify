@@ -2,7 +2,7 @@ using MessageService.DTOs;
 using MessageService.Interfaces;
 using MessageService.Interfaces.Services;
 using MessageService.Models;
-using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using MongoDB.Bson;
@@ -11,7 +11,7 @@ namespace MessageService.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [EnableCors("AllowAll")]
+    [Authorize]
     [EnableRateLimiting("fixed")]
     [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     [ProducesResponseType(typeof(MessageDto), StatusCodes.Status200OK)]
@@ -39,9 +39,9 @@ namespace MessageService.Controllers
             var messageDtos = result.Data.Select(m => new MessageDto 
             {
                 Id = m.Id,
-                UserName = m.SenderId ?? "Unknown",
+                UserName = m.UserName ?? "Unknown",
                 ChannelId = m.ChannelId,
-                AvatarUrl = m.SenderId ?? string.Empty,
+                AvatarUrl = m.AvatarUrl ?? string.Empty,
                 SenderId = m.SenderId,
                 Text = m.Text,
                 CreatedAt = m.CreatedAt
@@ -57,6 +57,7 @@ namespace MessageService.Controllers
             
             if (!result.IsSuccess)
             {
+                
                 return StatusCode(result.StatusCode, new { message = result.Message });
             }
             
@@ -74,5 +75,17 @@ namespace MessageService.Controllers
             
             return Ok(new { message = "Message sent successfully" });
         }
+
+        [HttpPut]
+        public async Task<IActionResult> UpdateMessage([FromBody] string message, ObjectId messageId)
+        {
+            var result = await _messageService.UpdateMessage(messageId, message);
+            if (!result.IsSuccess)
+            {
+                return StatusCode(result.StatusCode, new { message = result.Message });
+            }
+             return Ok(new { message = "Message updated successfully" });
+        }
+        
     }
 }

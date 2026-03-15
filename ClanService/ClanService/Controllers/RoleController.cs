@@ -17,7 +17,7 @@ namespace ClanService.Controllers
         }
 
         [HttpPut("{membershipId}")]
-        public async Task<IActionResult> UpdateRoleAsync(UpdateRoleDto roleDto)
+        public async Task<IActionResult> UpdateRoleAsync([FromBody] UpdateRoleDto roleDto)
         {
             if(roleDto == null || roleDto.MembershipId == Guid.Empty || string.IsNullOrEmpty(roleDto.RoleName))
             {
