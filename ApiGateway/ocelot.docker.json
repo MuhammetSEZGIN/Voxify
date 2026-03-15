@@ -45,7 +45,7 @@
       "SwaggerKey": "message"
     },
     {
-      "DownstreamPathTemplate": "/api/clan/{everything}",
+      "DownstreamPathTemplate": "/api/Clan/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
