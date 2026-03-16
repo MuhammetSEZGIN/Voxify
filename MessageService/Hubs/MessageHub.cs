@@ -38,9 +38,10 @@ public class MessageHub : Hub
 
         try
         {
+            var objectId = ObjectId.GenerateNewId();    
             var messageDto = new MessageDto
             {
-                Id = ObjectId.GenerateNewId(),
+                Id = objectId.ToString(),
                 ClanId = clanId,
                 UserName = userName,
                 ChannelId = channelId,
@@ -53,7 +54,7 @@ public class MessageHub : Hub
 
             var newMessage = new Message
             {
-                Id = messageDto.Id,
+                Id = objectId,
                 ClanId = clanId,
                 ChannelId = channelId,
                 SenderId = senderId,
@@ -105,7 +106,7 @@ public class MessageHub : Hub
 
                 var messageDto = new MessageDto
                 {
-                    Id = result.Data.Id,
+                    Id = result.Data.Id.ToString(),
                     ClanId = result.Data.ClanId,
                     ChannelId = result.Data.ChannelId,
                     SenderId = result.Data.SenderId,

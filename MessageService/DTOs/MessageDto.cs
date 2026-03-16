@@ -5,7 +5,7 @@ namespace MessageService.DTOs;
 
 public class MessageDto
 {
-    public ObjectId Id { get; set; }
+    public string Id { get; set; }
     public string ClanId { get; set; }
     public string ChannelId { get; set; }
     public string UserName { get; set; }
