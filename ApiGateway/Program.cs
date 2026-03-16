@@ -16,7 +16,7 @@ else
 }
 
 var corsConfigOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
-var corsDefaultOrigins = new[] { "http://localhost:5173", "tauri://localhost", "https://tauri.localhost" };
+var corsDefaultOrigins = new[] { "http://localhost:5173", "tauri://localhost", "https://tauri.localhost","http://tauri.localhost" };
 var corsAllowedOrigins = corsConfigOrigins.Union(corsDefaultOrigins).ToArray();
 
 builder.Services.AddCors(options =>
