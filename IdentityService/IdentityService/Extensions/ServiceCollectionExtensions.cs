@@ -57,39 +57,5 @@ namespace IdentityService.Extensions
 
             return services;
         }
-
-        public static IServiceCollection AddCorsConfiguration(this IServiceCollection services, IConfiguration configuration)
-        {
-            var configOrigins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
-            var defaultOrigins = new[] { "http://localhost:5000", "https://voxify.com.tr", "https://www.voxify.com.tr", "http://localhost:5173", "tauri://localhost", "https://tauri.localhost" };
-            var allowedOrigins = configOrigins.Union(defaultOrigins).ToArray();
-
-            services.AddCors(options =>
-            {
-                options.AddPolicy(
-                    "AllowTauri",
-                    policy =>
-                    {
-                        policy.WithOrigins(allowedOrigins)
-                              .AllowAnyMethod()
-                              .AllowAnyHeader()
-                              .AllowCredentials(); // Credentials allow is often needed
-                    }
-                );
-                
-                options.AddPolicy(
-                    "AllowAll",
-                    policy =>
-                    {
-                        policy.WithOrigins(allowedOrigins)
-                              .AllowAnyMethod()
-                              .AllowAnyHeader()
-                              .AllowCredentials();
-                    }
-                );
-            });
-
-            return services;
-        }
     }
 }

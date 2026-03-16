@@ -198,7 +198,6 @@ services:
       JWT_KEY: "${JWT_KEY}"
       JWT_ISSUER: "${JWT_ISSUER}"
       JWT_AUDIENCE: "${JWT_AUDIENCE}"
-      CORS_ALLOWED_ORIGINS: "${CORS_ORIGIN_1},${CORS_ORIGIN_2}"
       LIVEKIT_API_KEY: "${LIVEKIT_API_KEY}"
       LIVEKIT_API_SECRET: "${LIVEKIT_API_SECRET}"
       LIVEKIT_URL: "http://livekit-server:7880"
@@ -217,6 +216,8 @@ services:
       JWT__Key: "${JWT_KEY}"
       JWT__Issuer: "${JWT_ISSUER}"
       JWT__Audience: "${JWT_AUDIENCE}"
+      Cors__AllowedOrigins__0: "${CORS_ORIGIN_1}"
+      Cors__AllowedOrigins__1: "${CORS_ORIGIN_2}"
     ports:
       - "5000:5000"
     depends_on:

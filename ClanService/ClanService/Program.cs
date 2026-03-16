@@ -20,12 +20,8 @@ builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 
-// Artık CORS gerekiyor (Tauri vb. için)
-builder.Services.AddCustomCors(builder.Configuration);
-
 var app = builder.Build();
 
-app.UseCors("AllowTauri");
 app.UseUserHeaders();
 
 // Configure the HTTP request pipeline.

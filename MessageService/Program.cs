@@ -46,7 +46,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseRouting();
-app.UseCors("AllowTauri");
+app.UseCors(); // Endpoint-level CORS only (e.g. RequireCors on SignalR hub)
 
 app.MapHealthChecks("/health", new HealthCheckOptions()
 {

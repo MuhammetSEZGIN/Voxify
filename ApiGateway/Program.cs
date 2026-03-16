@@ -15,17 +15,15 @@ else
     builder.Configuration.AddJsonFile("ocelot.json", optional: false, reloadOnChange: true);
 }
 
+var corsConfigOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+var corsDefaultOrigins = new[] { "http://localhost:5173", "tauri://localhost", "https://tauri.localhost" };
+var corsAllowedOrigins = corsConfigOrigins.Union(corsDefaultOrigins).ToArray();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowTauri", policy =>
     {
-        policy.WithOrigins(
-                "http://localhost:5173",
-                "tauri://localhost",
-                "https://tauri.localhost",
-                "https://voxify.com.tr",
-                "https://www.voxify.com.tr"
-            )
+        policy.WithOrigins(corsAllowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();

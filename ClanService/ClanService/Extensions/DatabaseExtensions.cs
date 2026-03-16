@@ -23,8 +23,8 @@ public static class DatabaseExtensions
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "A critical error occurred while migrating the database. Swallowing error to keep container alive.");
-            // throw;
+            logger.LogError(ex, "A critical error occurred while migrating the database. Application cannot start.");
+            throw;
         }
 
         return app;
