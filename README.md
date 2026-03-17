@@ -2,7 +2,7 @@
 
 Voxify is a Discord-like real-time communication platform built with a **Microservices Architecture** using **C# / .NET Core**. It provides text messaging, user presence tracking, and voice channel capabilities.
 
-> 🖥️ **Frontend Repository:** You can find the highly-optimized, memory-friendly React client here: [MuhammetSEZGIN/sesver-react](https://github.com/MuhammetSEZGIN/sesver-react)
+> 🖥️ **Frontend Repository:** You can find the highly-optimized, memory-friendly React client here: [MuhammetSEZGIN/sesver-react](https://github.com/MuhammetSEZGIN/voxify-react)
 
 ## 🚀 Features
 
