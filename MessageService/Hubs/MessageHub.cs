@@ -13,6 +13,7 @@ namespace MessageService.Hubs;
 public class MessageHub : Hub
 {
     private readonly IMessageService _messageService;
+    private readonly IUserService _userService;
     private readonly ILogger<MessageHub> _logger;
     private readonly IBackgroundTaskQueue _backgroundTaskQueue;
     private readonly IServiceScopeFactory _serviceScopeFactory;
@@ -20,12 +21,14 @@ public class MessageHub : Hub
     public MessageHub(IMessageService messageService,
         ILogger<MessageHub> logger,
         IServiceScopeFactory serviceScopeFactory,
-        IBackgroundTaskQueue backgroundTaskQueue
+        IBackgroundTaskQueue backgroundTaskQueue,
+        IUserService userService
       )
     {
         _backgroundTaskQueue = backgroundTaskQueue;
         _serviceScopeFactory = serviceScopeFactory;
         _messageService = messageService;
+        _userService = userService;
         _logger = logger;
     }
     public async Task SendMessage(string channelId, string clanId, string senderId, string userName, string message)
@@ -104,12 +107,15 @@ public class MessageHub : Hub
                     _logger.LogWarning("Message {MessageId} not found for update", messageId);
                     return;
                 }
+                
+                var userName = await _userService.GetUserNameByIdAsync(result.Data.SenderId);
 
                 var messageDto = new MessageDto
                 {
                     Id = result.Data.Id.ToString(),
                     ClanId = result.Data.ClanId,
                     ChannelId = result.Data.ChannelId,
+                    UserName = userName ?? "Unknown",
                     SenderId = result.Data.SenderId,
                     Text = result.Data.Text,
                     CreatedAt = result.Data.CreatedAt
