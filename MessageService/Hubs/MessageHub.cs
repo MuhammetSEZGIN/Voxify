@@ -123,6 +123,47 @@ public class MessageHub : Hub
         });
     }
 
+    public async Task DeleteMessage(ObjectId messageId, string channelId)
+    {
+        if (messageId == ObjectId.Empty)
+        {
+            _logger.LogWarning("Empty message id in DeleteMessage");
+            await Clients.Caller.SendAsync("MessageDeleteFailed", messageId.ToString());
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(channelId))
+        {
+            _logger.LogWarning("Empty channel id in DeleteMessage for {MessageId}", messageId);
+            await Clients.Caller.SendAsync("MessageDeleteFailed", messageId.ToString());
+            return;
+        }
+
+        await _backgroundTaskQueue.QueueBackgroundWorkItemAsync(async token =>
+        {
+            try
+            {
+                using var scope = _serviceScopeFactory.CreateScope();
+                var messageService = scope.ServiceProvider.GetRequiredService<IMessageService>();
+                var result = await messageService.DeleteMessageAsync(messageId);
+
+                if (!result.IsSuccess)
+                {
+                    _logger.LogWarning("Message {MessageId} could not be deleted: {Reason}", messageId, result.Message);
+                    await Clients.Caller.SendAsync("MessageDeleteFailed", messageId.ToString());
+                    return;
+                }
+
+                await Clients.Group(channelId).SendAsync("MessageDeleted", messageId.ToString());
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error deleting message {MessageId}", messageId);
+                await Clients.Caller.SendAsync("MessageDeleteFailed", messageId.ToString());
+            }
+        });
+    }
+
     public async Task JoinChannel(Guid channelId)
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, channelId.ToString());
