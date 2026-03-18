@@ -84,7 +84,7 @@ public class MessageHub : Hub
         }
     }
 
-    public async Task UpdateMessage(ObjectId messageId, string newContent)
+    public async Task UpdateMessage(string messageId, string newContent)
     {
         if (string.IsNullOrEmpty(newContent))
         {
@@ -97,7 +97,8 @@ public class MessageHub : Hub
             {
                 using var scope = _serviceScopeFactory.CreateScope();
                 var messageService = scope.ServiceProvider.GetRequiredService<IMessageService>();
-                var result = await messageService.UpdateMessage(messageId, newContent);
+                var objectId = ObjectId.Parse(messageId);   
+                var result = await messageService.UpdateMessage(objectId, newContent);
                 if (result == null)
                 {
                     _logger.LogWarning("Message {MessageId} not found for update", messageId);
@@ -123,9 +124,10 @@ public class MessageHub : Hub
         });
     }
 
-    public async Task DeleteMessage(ObjectId messageId, string channelId)
+    public async Task DeleteMessage(string messageId, string channelId)
     {
-        if (messageId == ObjectId.Empty)
+        var objectId = ObjectId.Parse(messageId);
+        if (objectId == ObjectId.Empty)
         {
             _logger.LogWarning("Empty message id in DeleteMessage");
             await Clients.Caller.SendAsync("MessageDeleteFailed", messageId.ToString());
@@ -145,7 +147,7 @@ public class MessageHub : Hub
             {
                 using var scope = _serviceScopeFactory.CreateScope();
                 var messageService = scope.ServiceProvider.GetRequiredService<IMessageService>();
-                var result = await messageService.DeleteMessageAsync(messageId);
+                var result = await messageService.DeleteMessageAsync(objectId);
 
                 if (!result.IsSuccess)
                 {
