@@ -94,6 +94,12 @@ public class MessageHub : Hub
             _logger.LogWarning("Empty content in UpdateMessage for {MessageId}", messageId);
             return;
         }
+        if (string.IsNullOrEmpty(messageId))
+        {
+            _logger.LogWarning("Empty message id in UpdateMessage");
+            return;
+        }
+        
         {
             try
             {

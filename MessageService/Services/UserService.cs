@@ -8,13 +8,10 @@ namespace MessageService.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
-        public Task<string> GetUserNameByIdAsync(string userId)
+        public async Task<string> GetUserNameByIdAsync(string userId)
         {
-            return _userRepository.GetByIdAsync(userId).ContinueWith(task =>
-            {
-                var user = task.Result;
-                return user != null ? user.UserName : null;
-            });
+            var user = await _userRepository.GetByIdAsync(userId);
+            return user?.UserName;
         }
     }
 }
