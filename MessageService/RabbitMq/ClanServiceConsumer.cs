@@ -25,22 +25,33 @@ public class ClanServiceConsumer : IConsumer<ChannelDeletedMessage>, IConsumer<C
     public async Task Consume(ConsumeContext<ChannelDeletedMessage> context)
     {
         var msg = context.Message;
-        _logger.LogInformation("Kanal silme mesajı işleniyor: {ChannelId}", msg.ChannelId);
 
-        await _messageRepository.DeleteMessagesOfChannelByChannelId(msg.ChannelId);
-        
-        // Presence service de yapmayı planlıyorum
-        // await _hubContext.Clients.Group(msg.ChannelId).SendAsync("OnChannelDeleted", msg.ChannelId);
+        try
+        {
+            await _messageRepository.DeleteMessagesOfChannelByChannelId(msg.ChannelId);
+            _logger.LogInformation("Kanal komple siliniyor: {ChannelId}", msg.ChannelId);
+             
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Kanal silme işlemi sırasında hata oluştu: {ChannelId}", msg.ChannelId);
+            throw;
+        }
     }
 
     public async Task Consume(ConsumeContext<ClanDeletedMessage> context)
     {
         var msg = context.Message;
-        _logger.LogInformation("Klan komple siliniyor: {ClanId}", msg.ClanId);
 
-        await _messageRepository.DeleteMessagesByClanId(msg.ClanId);
-
-        // Presence service de yapmayı planlıyorum
-        // await _hubContext.Clients.Group($"clan_{msg.ClanId}").SendAsync("OnClanDeleted", msg.ClanId);
+        try
+        {
+            _logger.LogInformation("Klan komple siliniyor: {ClanId}", msg.ClanId);
+            await _messageRepository.DeleteMessagesByClanId(msg.ClanId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Klan silme işlemi sırasında hata oluştu: {ClanId}", msg.ClanId);
+            throw;
+        }
     }
 }
