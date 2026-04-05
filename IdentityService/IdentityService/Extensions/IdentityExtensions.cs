@@ -17,7 +17,7 @@ namespace IdentityService.Extensions
                     options.Password.RequireUppercase = true;
                     options.Password.RequireLowercase = true;
                     options.User.RequireUniqueEmail = true;
-                    options.SignIn.RequireConfirmedEmail = true;
+                    options.SignIn.RequireConfirmedEmail = false;
                     options.SignIn.RequireConfirmedPhoneNumber = false;
                     options.SignIn.RequireConfirmedAccount = false;
                 })
