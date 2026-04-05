@@ -1,21 +1,24 @@
 using System;
-using ClanService.DTOs.ClanDtos;
 using ClanService.Interfaces;
 using ClanService.Interfaces.Repositories;
+using ClanService.Interfaces.Services;
+using Shared.Contracts;
 namespace ClanService.Services;
 
 public class RoleService : IRoleService
 {
     private readonly IClanMembershipRepository _membershipRepository;
     private readonly ILogger<RoleService> _logger;
+    private readonly IClanMessageProducer _clanMessageProducer;
     
-    public RoleService(IClanMembershipRepository membershipRepository, ILogger<RoleService> logger)
+    public RoleService(IClanMembershipRepository membershipRepository, ILogger<RoleService> logger, IClanMessageProducer clanMessageProducer)
     {
         _logger = logger;
         _membershipRepository = membershipRepository;
+        _clanMessageProducer = clanMessageProducer;
     }
     
-    private static readonly string[] AllowedRoles = [ClanRole.Member, ClanRole.Admin, ClanRole.Owner];
+    private static readonly string[] AllowedRoles = [ClanRole.MEMBER.ToString(), ClanRole.ADMIN.ToString(), ClanRole.OWNER.ToString()];
 
     public async Task<bool> UpdateRoleAsync(Guid membershipId, string roleName)
     {
@@ -36,6 +39,13 @@ public class RoleService : IRoleService
             
             existingMembership.Role = roleName;
             await _membershipRepository.UpdateAsync(existingMembership);
+            await _clanMessageProducer.PublishClanRoleEventAsync(new ClanRoleEventDto
+            {
+                UserId = existingMembership.UserId,
+                ClanId = existingMembership.ClanId.ToString(),
+                Role = roleName,
+                EventType = ClanRoleEventType.ASSIGN_ROLE.ToString()
+            });
             _logger.LogInformation("Role of membership {MembershipId} updated to {RoleName}.", membershipId, roleName);
             return true;
         }

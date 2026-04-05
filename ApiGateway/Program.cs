@@ -44,11 +44,6 @@ builder
                     builder.Configuration["JWT:Key"]!
                 )
             ),
-
-            /*
-                Token'ı kimin oluşturduğunu (Issuer) ve kimin için oluşturulduğunu (Audience) doğrulama adımlarını devre dışı bırakır.
-                Genellikle API Gateway senaryolarında bu kontroller aşağı akış servislerinde yapılır.
-            */
             ValidateIssuer = true,
             ValidIssuer = builder.Configuration["JWT:Issuer"],
             ValidateAudience = true,
@@ -91,10 +86,6 @@ app.Use(
             context.Request.Headers.Append(
                 "X-User-Name",
                 context.User.FindFirst("unique_name")?.Value ?? string.Empty
-            );
-            context.Request.Headers.Append(
-                "X-User-Avatar",
-                context.User.FindFirst("picture")?.Value ?? string.Empty
             );
         }
         await next();

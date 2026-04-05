@@ -1,6 +1,8 @@
 using Shared.Contracts;
 using ClanService.Interfaces.Services;
 using MassTransit;
+using System.Text.Json;
+using System.Net.Mime;
 
 namespace ClanService.RabbitMq;
 
@@ -47,5 +49,20 @@ public class ClanMessageProducer : IClanMessageProducer
             clanId
         );
         await _publishEndpoint.Publish(message);
+    }
+
+    public async Task PublishClanRoleEventAsync(ClanRoleEventDto clanRoleEvent)
+    {
+        _logger.LogInformation(
+            "Publishing ClanRoleEvent for user: {userId}, clan: {clanId}, role: {role}, eventType: {eventType}",
+            clanRoleEvent.UserId,
+            clanRoleEvent.ClanId,
+            clanRoleEvent.Role,
+            clanRoleEvent.EventType
+        );
+
+
+        await _publishEndpoint.Publish(clanRoleEvent);
+        
     }
 }

@@ -3,6 +3,7 @@ using ClanService.Interfaces;
 using ClanService.DTOs.ClanDtos;
 using ClanService.Interfaces.Repositories;
 using ClanService.Interfaces.Services;
+using Shared.Contracts;
 
 namespace ClanService.Services
 {
@@ -47,10 +48,16 @@ namespace ClanService.Services
                 {
                     ClanId = clan.ClanId,
                     UserId = userId,
-                    Role = ClanRole.Owner
+                    Role = ClanRole.OWNER.ToString()
                 };
                 await _clanMembershipRepository.AddAsync(clanMembership);
-
+                await _clanMessageProducer.PublishClanRoleEventAsync(new ClanRoleEventDto
+                {
+                    UserId = userId,
+                    ClanId = clan.ClanId.ToString(),
+                    Role = ClanRole.OWNER.ToString(),
+                    EventType = ClanRoleEventType.ASSIGN_ROLE.ToString()
+                });
                 return (clan, "Clan created successfully");
             }
             catch (Exception e)
@@ -111,6 +118,13 @@ namespace ClanService.Services
                 if (result != null)
                 {
                     await _clanMessageProducer.PublishClanDeletedMessageAsync(clanId.ToString());
+                    await _clanMessageProducer.PublishClanRoleEventAsync(new ClanRoleEventDto
+                    {
+                        UserId = null,
+                        ClanId = clanId.ToString(),
+                        Role = null,
+                        EventType = ClanRoleEventType.REMOVE_ALL_ROLES.ToString()
+                    });
                     _logger.LogInformation("Clan {ClanId} deleted successfully", clanId);
                 }
                 else

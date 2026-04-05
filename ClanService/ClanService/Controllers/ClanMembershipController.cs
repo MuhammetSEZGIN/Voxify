@@ -5,6 +5,7 @@ using ClanService.DTOs;
 using AutoMapper;
 using ClanService.DTOs.ClanDtos;
 using ClanService.DTOs.ClanMembershipDtos;
+using Shared.Contracts;
 
 namespace ClanService.Controllers
 {
@@ -99,7 +100,7 @@ namespace ClanService.Controllers
             {
                 ClanId = invitation.ClanId,
                 UserId = inviteCode.UserId,
-                Role = ClanRole.Member
+                Role = ClanRole.MEMBER.ToString()
             };
 
             var (result, message) = await _clanMembershipService.AddMemberAsync(membership);

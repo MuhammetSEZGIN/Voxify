@@ -2,6 +2,7 @@ using ClanService.Models;
 using ClanService.Interfaces;
 using ClanService.Interfaces.Repositories;
 using ClanService.Interfaces.Services;
+using Shared.Contracts;
 
 namespace ClanService.Services
 {
@@ -9,16 +10,19 @@ namespace ClanService.Services
     {
         private readonly IClanMembershipRepository _membershipRepository;
         private readonly IUserRepository _userRepository;
+        private readonly IClanMessageProducer _clanMessageProducer;
         private readonly ILogger<ClanMembershipService> _logger;
 
         public ClanMembershipService(
             IClanMembershipRepository membershipRepository,
             IUserRepository userRepository,
+            IClanMessageProducer clanMessageProducer,
             ILogger<ClanMembershipService> logger)
         {
             _logger = logger;
             _membershipRepository = membershipRepository;
             _userRepository = userRepository;
+            _clanMessageProducer = clanMessageProducer;
         }
 
         public async Task<(ClanMembership, string)> AddMemberAsync(ClanMembership membership)
@@ -35,6 +39,13 @@ namespace ClanService.Services
 
                 membership.Id = Guid.NewGuid();
                 await _membershipRepository.AddAsync(membership);
+                await _clanMessageProducer.PublishClanRoleEventAsync(new ClanRoleEventDto
+                {
+                    UserId = membership.UserId,
+                    ClanId = membership.ClanId.ToString(),
+                    Role = ClanRole.MEMBER.ToString(),
+                    EventType = ClanRoleEventType.ASSIGN_ROLE.ToString()
+                });
                 _logger.LogInformation("User {UserId} added to clan {ClanId} successfully.", membership.UserId, membership.ClanId);
                 return (membership, "User added to the clan successfully.");
             }
@@ -71,7 +82,13 @@ namespace ClanService.Services
                     return (null, "User is not a member of this clan.");
 
                 await _membershipRepository.DeleteAsync(membership);
-
+                await _clanMessageProducer.PublishClanRoleEventAsync(new ClanRoleEventDto
+                {
+                    UserId = membership.UserId,
+                    ClanId = membership.ClanId.ToString(),
+                    Role = null,
+                    EventType = ClanRoleEventType.REMOVE_ROLE.ToString()
+                });
                 _logger.LogInformation("User {UserId} has left clan {ClanId} successfully.", userId, clanId);
                 return (membership, "User has left the clan successfully.");
             }
@@ -85,10 +102,27 @@ namespace ClanService.Services
         public async Task<bool> RemoveMemberAsync(Guid membershipId)
         {
             var existing = await _membershipRepository.GetByIdAsync(membershipId);
+            _logger.LogWarning("There is no membership {MembershipId}.", membershipId);
             if (existing == null) return false;
+            try
+            {
+                await _membershipRepository.DeleteAsync(existing);
+                _logger.LogInformation("Membership {MembershipId} removed successfully.", membershipId);
+                await _clanMessageProducer.PublishClanRoleEventAsync(new ClanRoleEventDto
+                {
+                    UserId = existing.UserId,
+                    ClanId = existing.ClanId.ToString(),
+                    Role = null,
+                    EventType = ClanRoleEventType.REMOVE_ROLE.ToString()
+                });
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while removing membership {MembershipId}.", membershipId);
+                return false;
+            }
 
-            await _membershipRepository.DeleteAsync(existing);
-            return true;
         }
     }
 }
