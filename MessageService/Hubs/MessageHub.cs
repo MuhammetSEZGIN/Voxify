@@ -9,7 +9,7 @@ using MongoDB.Bson;
 
 namespace MessageService.Hubs;
 
-[Authorize]
+[Authorize(AuthenticationSchemes = "Bearer")]
 public class MessageHub : Hub
 {
     private readonly IMessageService _messageService;

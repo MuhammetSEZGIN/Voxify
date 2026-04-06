@@ -1,3 +1,4 @@
+using System.Text;
 using MessageService.Hubs;
 using MessageService.RabbitMq;
 using MessageService.Services;
@@ -31,8 +32,44 @@ builder.Services.AddSingleton<IBackgroundTaskQueue>(
 );
 builder.Services.AddHostedService<QueuedHostedService>();
 
+var jwtKey = builder.Configuration["Jwt:Key"]
+    ?? throw new InvalidOperationException("Jwt:Key is not configured.");
+var jwtIssuer = builder.Configuration["Jwt:Issuer"]
+    ?? throw new InvalidOperationException("Jwt:Issuer is not configured.");
+var jwtAudience = builder.Configuration["Jwt:Audience"]
+    ?? throw new InvalidOperationException("Jwt:Audience is not configured.");
+
 builder.Services.AddAuthentication("GatewayAuth")
-    .AddScheme<AuthenticationSchemeOptions, GatewayAuthenticationHandler>("GatewayAuth", null);
+    .AddScheme<AuthenticationSchemeOptions, GatewayAuthenticationHandler>("GatewayAuth", null)
+    .AddJwtBearer("Bearer", options =>
+    {
+        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
+                System.Text.Encoding.ASCII.GetBytes(jwtKey)),
+            ValidateIssuer = true,
+            ValidIssuer = jwtIssuer,
+            ValidateAudience = true,
+            ValidAudience = jwtAudience,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+        };
+        options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    path.StartsWithSegments("/messagehub", StringComparison.OrdinalIgnoreCase))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
+        };
+    });
 builder.Services.AddAuthorization();
 
 builder.Services.AddControllers();
@@ -53,6 +90,21 @@ if (app.Environment.IsDevelopment())
 
 app.UseRouting();
 app.UseCors(); // Endpoint-level CORS only (e.g. RequireCors on SignalR hub)
+
+// Normalize double slashes in request path before routing
+app.Use(async (context, next) =>
+{
+    var path = context.Request.Path.Value ?? string.Empty;
+    if (path.Contains("//", StringComparison.Ordinal))
+    {
+        while (path.StartsWith("//", StringComparison.Ordinal))
+        {
+            path = path[1..];
+        }
+        context.Request.Path = new PathString(path);
+    }
+    await next();
+});
 
 app.MapHealthChecks("/health", new HealthCheckOptions()
 {

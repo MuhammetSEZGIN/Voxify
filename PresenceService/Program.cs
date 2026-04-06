@@ -16,6 +16,22 @@ var app = builder.Build();
 
 app.UseRouting();
 app.UseCors("AllowTauri");
+
+// Normalize double slashes in request path before routing
+app.Use(async (context, next) =>
+{
+    var path = context.Request.Path.Value ?? string.Empty;
+    if (path.Contains("//", StringComparison.Ordinal))
+    {
+        while (path.StartsWith("//", StringComparison.Ordinal))
+        {
+            path = path[1..];
+        }
+        context.Request.Path = new PathString(path);
+    }
+    await next();
+});
+
 app.UseWebSockets();
 app.UseAuthentication();
 app.UseAuthorization();

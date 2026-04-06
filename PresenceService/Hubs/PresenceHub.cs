@@ -4,7 +4,7 @@ using PresenceService.Interfaces;
 
 namespace PresenceService.Hubs;
 
-[Authorize]
+[Authorize(AuthenticationSchemes = "Bearer")]
 public class PresenceHub : Hub
 {
     private readonly IPresenceRepository _repository;
