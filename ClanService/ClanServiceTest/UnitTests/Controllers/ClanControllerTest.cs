@@ -10,6 +10,7 @@ using ClanService.Mapping;
 using ClanService.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using Moq;
 using Xunit;
 
@@ -49,7 +50,6 @@ public class ClanControllerTest
         var dto = new ClanCreateDto
         {
             Name = "",
-            UserId = "user-1",
             ImagePath = "img.png",
             Description = "desc"
         };
@@ -68,16 +68,19 @@ public class ClanControllerTest
     public async Task CreateClan_Returns_BadRequest_When_Service_Returns_Null_Created()
     {
         // Arrange
+        var userId = "user-1";
+        _controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(
+            new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, userId) }, "TestAuth"));
+
         var dto = new ClanCreateDto
         {
             Name = "Test Clan",
-            UserId = "user-1",
             ImagePath = "img.png",
             Description = "desc"
         };
 
         _clanServiceMock
-            .Setup(s => s.CreateClanAsync(It.IsAny<Clan>(), dto.UserId))
+            .Setup(s => s.CreateClanAsync(It.IsAny<Clan>(), userId))
             .ReturnsAsync((null!, "Cannot create clan."));
 
         // Act
@@ -93,10 +96,13 @@ public class ClanControllerTest
     public async Task CreateClan_Returns_Ok_With_ClanReadDto_When_Created()
     {
         // Arrange
+        var userId = "user-1";
+        _controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(
+            new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, userId) }, "TestAuth"));
+
         var dto = new ClanCreateDto
         {
             Name = "Test Clan",
-            UserId = "user-1",
             ImagePath = "img.png",
             Description = "desc"
         };
@@ -110,7 +116,7 @@ public class ClanControllerTest
         };
 
         _clanServiceMock
-            .Setup(s => s.CreateClanAsync(It.IsAny<Clan>(), dto.UserId))
+            .Setup(s => s.CreateClanAsync(It.IsAny<Clan>(), userId))
             .ReturnsAsync((created, "ok"));
 
         // Act
@@ -343,13 +349,16 @@ public class ClanControllerTest
 
     #endregion
 
-    #region GetClansByUserIdAsync
+    #region GetMyClansAsync
 
     [Fact]
-    public async Task GetClansByUserIdAsync_Returns_Ok_With_List()
+    public async Task GetMyClansAsync_Returns_Ok_With_List()
     {
         // Arrange
         var userId = "user-1";
+        _controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(
+            new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, userId) }, "TestAuth"));
+
         var clans = new List<Clan>
         {
             new() { ClanId = Guid.NewGuid(), Name = "A", ImagePath = "a.png", Description = "da" }
@@ -360,7 +369,7 @@ public class ClanControllerTest
             .ReturnsAsync(clans);
 
         // Act
-        var result = await _controller.GetClansByUserIdAsync(userId);
+        var result = await _controller.GetMyClansAsync();
 
         // Assert
         var ok = Assert.IsType<OkObjectResult>(result);
