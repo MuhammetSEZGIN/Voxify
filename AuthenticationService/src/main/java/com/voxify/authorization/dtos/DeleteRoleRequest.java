@@ -1,6 +1,5 @@
 package com.voxify.authorization.dtos;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;

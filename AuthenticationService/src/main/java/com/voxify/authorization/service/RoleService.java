@@ -9,6 +9,7 @@ import com.voxify.authorization.exceptions.RoleException;
 import com.voxify.authorization.repository.RoleRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -18,6 +19,8 @@ import java.util.Optional;
 import java.util.Set;
 
 @Service
+@Slf4j
+
 @RequiredArgsConstructor
 public class RoleService {
     private final RoleRepository roleRepository;
@@ -25,13 +28,14 @@ public class RoleService {
 
     @Cacheable(value = "clanRoles", key = "'u:' + #userId + '-c:' + #clanId")
     public RoleDto getRoles(String userId, String clanId) {
+        log.info("Rol bilgisi isteniyor: userId={}, clanId={}", userId, clanId);
 
         Optional<Role> existingRole = roleRepository.findByUserIdAndClanId(
                 userId, clanId);
         if (existingRole.isEmpty()) {
             throw new RoleException("Kullanıcı için rol bulunamadı: " + userId);
         }
-
+        log.info("Rol bilgisi getirildi: userId={}, clanId={}", userId, clanId);
         return mapToDto(existingRole.get());
     }
 

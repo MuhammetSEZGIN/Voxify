@@ -1,6 +1,5 @@
 package com.voxify.authorization.constant;
 
-import lombok.Data;
 import lombok.Getter;
 
 @Getter

@@ -1,8 +1,6 @@
 package com.voxify.authorization.controller;
 
-import com.voxify.authorization.dtos.DeleteRoleRequest;
 import com.voxify.authorization.dtos.RoleDto;
-import com.voxify.authorization.dtos.UpdateRoleRequest;
 import com.voxify.authorization.service.RoleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
