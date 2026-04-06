@@ -25,9 +25,8 @@ namespace MessageService.Controllers
 
         [HttpGet("channelId/{channelId}/clanId/{clanId}")]
         [Authorize(Roles = "OWNER,ADMIN,MEMBER")]
-
        public async Task<IActionResult> GetMessagesInChannelAsync(
-            [FromQuery] string channelId, 
+            string channelId, 
             [FromQuery] int limit = 20, 
             [FromQuery] int page = 1)
         {
