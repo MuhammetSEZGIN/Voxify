@@ -6,6 +6,8 @@ using AutoMapper;
 using ClanService.DTOs.ClanDtos;
 using ClanService.DTOs.ClanMembershipDtos;
 using Shared.Contracts;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace ClanService.Controllers
 {
@@ -27,6 +29,7 @@ namespace ClanService.Controllers
 
 
         [HttpGet("{id}")]
+        [Authorize(Roles = "MUHAMMET")]
         public async Task<IActionResult> GetMembership(Guid id)
         {
             var membership = await _clanMembershipService.GetMembershipAsync(id);
@@ -37,7 +40,8 @@ namespace ClanService.Controllers
             return Ok(readDto);
         }
 
-        [HttpGet("clan/{clanId}")]
+        [HttpGet("clanId/{clanId}")]
+        [Authorize(Roles = "OWNER,ADMIN,MEMBER")]
         public async Task<IActionResult> GetMembershipsByClanId(Guid clanId)
         {
             var memberships = await _clanMembershipService.GetMembershipsByClanIdAsync(clanId);
@@ -46,6 +50,7 @@ namespace ClanService.Controllers
         }
 
         [HttpGet("user/{userId}")]
+        [Authorize(Roles = "OWNER,ADMIN,MEMBER")]
         public async Task<IActionResult> GetMembershipsByUserId(string userId)
         {
             var memberships = await _clanMembershipService.GetMembershipsByUserIdAsync(userId);
@@ -53,26 +58,30 @@ namespace ClanService.Controllers
             return Ok(readDtoList);
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> RemoveMember(Guid id)
+        [HttpDelete("member/{userId}/clanId/{clanId}")]
+        [Authorize(Roles = "OWNER,ADMIN")]
+        public async Task<IActionResult> RemoveMember(string userId, Guid clanId)
         {
-            var result = await _clanMembershipService.RemoveMemberAsync(id);
+            var result = await _clanMembershipService.RemoveMemberAsync(userId, clanId);
             if (!result)
                 return NotFound(new ErrorDto { Message = "Membership not found or already removed." });
 
             return NoContent();
         }
-        
-        [HttpDelete("{clanId}/user/{userId}")]
-        public async Task<IActionResult> LeaveClan(string userId, Guid clanId)
+
+        [HttpDelete("user/clanId/{clanId}")]
+        [Authorize(Roles = "ADMIN,MEMBER")]
+        public async Task<IActionResult> LeaveClan(Guid clanId)
         {
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var result = await _clanMembershipService.LeaveClanAsync(userId, clanId);
-            if (result.Item1==null)
-                return NotFound(new ErrorDto { Message =result.Item2 });
+            if (result.Item1 == null)
+                return NotFound(new ErrorDto { Message = result.Item2 });
 
             return NoContent();
         }
-        [HttpPost("{clanId}/invitations")]
+        [HttpPost("invitations/clanId/{clanId}")]
+        [Authorize(Roles = "OWNER,ADMIN")]
         public async Task<IActionResult> CreateInvitation(Guid clanId)
         {
             var clan = await _clanService.GetClanByIdAsync(clanId);
@@ -92,21 +101,22 @@ namespace ClanService.Controllers
         [HttpPost("join")]
         public async Task<IActionResult> JoinClanWithInvite([FromBody] InviteCodeDto inviteCode)
         {
-            var (isValid,validateMessage, invitation) = await _clanService.ValidateAndUseInvitationAsync(inviteCode.InviteCode);
+            var (isValid, validateMessage, invitation) = await _clanService.ValidateAndUseInvitationAsync(inviteCode.InviteCode);
             if (!isValid)
                 return BadRequest(new ErrorDto { Message = validateMessage });
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var membership = new ClanMembership
             {
                 ClanId = invitation.ClanId,
-                UserId = inviteCode.UserId,
+                UserId = userId,
                 Role = ClanRole.MEMBER.ToString()
             };
 
             var (result, message) = await _clanMembershipService.AddMemberAsync(membership);
-            if(result == null)
+            if (result == null)
                 return BadRequest(new ErrorDto { Message = message });
-            
+
             return Ok(_mapper.Map<ClanMembershipReadDto>(result));
         }
     }

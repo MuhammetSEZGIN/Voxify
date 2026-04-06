@@ -1,6 +1,9 @@
 using ClanService.Data;
 using ClanService.Extensions;
+using ClanService.Handlers;
+using ClanService.Middlewares;
 using ClanService.RabbitMq;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +16,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddAuthentication("GatewayAuth")
+    .AddScheme<AuthenticationSchemeOptions, GatewayAuthenticationHandler>("GatewayAuth", null);
+builder.Services.AddAuthorization();
 builder.Services.AddApplicationServices();
 builder.Services.AddRabbitMQServices(builder.Configuration);
 
@@ -22,9 +28,8 @@ builder.Logging.AddDebug();
 
 var app = builder.Build();
 
-app.UseUserHeaders();
+//app.UseUserHeaders();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     // more detailed error explanation
@@ -36,7 +41,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseAuthentication();
+//app.UseMiddleware<RoleControleMiddleware>();
+app.UseAuthorization();
 
 app.MapControllers();
 

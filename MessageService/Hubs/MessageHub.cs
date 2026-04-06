@@ -99,7 +99,7 @@ public class MessageHub : Hub
             _logger.LogWarning("Empty message id in UpdateMessage");
             return;
         }
-        
+
         {
             try
             {

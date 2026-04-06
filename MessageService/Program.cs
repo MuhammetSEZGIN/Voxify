@@ -4,6 +4,9 @@ using MessageService.Services;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using MessageService.Interfaces.Services;
 using MessageService.Extensions;
+using MessageService.Middlewares;
+using Microsoft.AspNetCore.Authentication;
+using MessageService.Handlers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,7 +31,9 @@ builder.Services.AddSingleton<IBackgroundTaskQueue>(
 );
 builder.Services.AddHostedService<QueuedHostedService>();
 
-builder.Services.AddJwtAuthentication(builder.Configuration);
+builder.Services.AddAuthentication("GatewayAuth")
+    .AddScheme<AuthenticationSchemeOptions, GatewayAuthenticationHandler>("GatewayAuth", null);
+builder.Services.AddAuthorization();
 
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
@@ -71,6 +76,7 @@ app.MapHealthChecks("/health", new HealthCheckOptions()
     }
 });
 app.UseAuthentication();
+
 app.UseRateLimiter();
 app.UseAuthorization();
 app.MapHub<MessageHub>("/messagehub").RequireCors("AllowTauri");

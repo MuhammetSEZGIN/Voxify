@@ -3,6 +3,7 @@ using ClanService.Interfaces;
 using ClanService.Models;
 using ClanService.DTOs;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ClanService.Controllers
 {
@@ -20,7 +21,8 @@ namespace ClanService.Controllers
         }
 
 
-        [HttpPost]
+        [HttpPost("clanId/{clanId}")]
+        [Authorize(Roles = "OWNER,ADMIN")]
         public async Task<IActionResult> CreateChannel([FromBody] ChannelCreateDto dto)
         {
             if (!ModelState.IsValid)
@@ -40,7 +42,8 @@ namespace ClanService.Controllers
             return Ok(readDto);
         }
 
-        [HttpGet("{channelId}")]
+        [HttpGet("channel/{channelId}/clanId/{clanId}/")]
+        [Authorize(Roles = "OWNER,ADMIN,MEMBER")]
         public async Task<IActionResult> GetChannelById(Guid channelId)
         {
             var channel = await _channelService.GetChannelByIdAsync(channelId);
@@ -54,7 +57,9 @@ namespace ClanService.Controllers
             return Ok(readDto);
         }
 
-        [HttpGet("clan/{clanId}")]
+        [HttpGet("clanId/{clanId}")]
+        [Authorize(Roles = "OWNER,ADMIN,MEMBER")]
+
         public async Task<IActionResult> GetChannelsByClanId(Guid clanId)
         {
             var channels = await _channelService.GetChannelsByClanIdAsync(clanId);
@@ -67,7 +72,8 @@ namespace ClanService.Controllers
             return Ok(readDtoList);
         }
 
-        [HttpPut]
+        [HttpPut("clanId/{clanId}")]
+        [Authorize(Roles = "OWNER,ADMIN")]
         public async Task<IActionResult> UpdateChannel([FromBody] ChannelUpdateDto dto)
         {
             if (!ModelState.IsValid)
@@ -89,7 +95,8 @@ namespace ClanService.Controllers
             return Ok(readDto);
         }
 
-        [HttpDelete("{channelId}")]
+        [HttpDelete("channel/{channelId}/clanId/{clanId}")]
+        [Authorize(Roles = "OWNER,ADMIN")]
         public async Task<IActionResult> DeleteChannel(Guid channelId)
         {
             var result = await _channelService.DeleteChannelAsync(channelId);

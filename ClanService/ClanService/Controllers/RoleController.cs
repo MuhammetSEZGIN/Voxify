@@ -1,5 +1,6 @@
 using ClanService.DTOs.ClanMembershipDtos;
 using ClanService.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,7 +17,8 @@ namespace ClanService.Controllers
 
         }
 
-        [HttpPut]
+        [HttpPut("clanId/{clanId}")]
+        [Authorize(Roles = "OWNER,ADMIN")]
         public async Task<IActionResult> UpdateRoleAsync([FromBody] UpdateRoleDto roleDto)
         {
             if(roleDto == null || roleDto.MembershipId == Guid.Empty || string.IsNullOrEmpty(roleDto.RoleName))

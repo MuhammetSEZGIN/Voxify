@@ -3,6 +3,8 @@ using ClanService.Interfaces;
 using ClanService.Models;
 using ClanService.DTOs;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace ClanService.Controllers
 {
@@ -12,7 +14,7 @@ namespace ClanService.Controllers
     {
         private readonly IClanService _clanService;
         private readonly IMapper _mapper;
-        
+
         public ClanController(IClanService clanService, IMapper mapper)
         {
             _clanService = clanService;
@@ -21,23 +23,24 @@ namespace ClanService.Controllers
 
         [HttpPost]
         public async Task<IActionResult> CreateClan([FromBody] ClanCreateDto dto)
-        {    
+        {
             if (!ModelState.IsValid)
-                return BadRequest(new ErrorDto 
-                { 
-                    Message = "Invalid clan data.", 
-                    Errors = ModelState 
+                return BadRequest(new ErrorDto
+                {
+                    Message = "Invalid clan data.",
+                    Errors = ModelState
                 });
-
             var clan = _mapper.Map<Clan>(dto);
-            var (created, message) = await _clanService.CreateClanAsync(clan, dto.UserId);
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var (created, message) = await _clanService.CreateClanAsync(clan, userId);
             if (created == null)
                 return BadRequest(new ErrorDto { Message = message });
             var readDto = _mapper.Map<ClanReadDto>(created);
             return Ok(readDto);
         }
 
-        [HttpGet("{clanId}")]
+        [HttpGet("clanId/{clanId}")]
+        [Authorize(Roles = "OWNER,ADMIN,MEMBER")]
         public async Task<IActionResult> GetClanById(Guid clanId)
         {
             var clan = await _clanService.GetClanByIdAsync(clanId);
@@ -49,6 +52,7 @@ namespace ClanService.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "MUHAMMET")]
         public async Task<IActionResult> GetAllClans()
         {
             var clans = await _clanService.GetAllClansAsync();
@@ -56,14 +60,15 @@ namespace ClanService.Controllers
             return Ok(readDtoList);
         }
 
-        [HttpPut]
+        [HttpPut("clanId/{clanId}")]
+        [Authorize(Roles = "OWNER,ADMIN")]
         public async Task<IActionResult> UpdateClan([FromBody] ClanUpdateDto dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(new ErrorDto 
-                { 
-                    Message = "Invalid clan data.", 
-                    Errors = ModelState 
+                return BadRequest(new ErrorDto
+                {
+                    Message = "Invalid clan data.",
+                    Errors = ModelState
                 });
 
             var existing = await _clanService.GetClanByIdAsync(dto.ClanId);
@@ -72,13 +77,14 @@ namespace ClanService.Controllers
 
             existing.Name = dto.Name;
             existing.ImagePath = dto.ImagePath;
-            
+            existing.Description = dto.Description;
             var updated = await _clanService.UpdateClanAsync(existing);
             var readDto = _mapper.Map<ClanReadDto>(updated);
             return Ok(readDto);
         }
 
-        [HttpDelete("{clanId}")]
+        [HttpDelete("clanId/{clanId}")]
+        [Authorize(Roles = "OWNER")]
         public async Task<IActionResult> DeleteClan(Guid clanId)
         {
             var result = await _clanService.DeleteClanAsync(clanId);
@@ -91,7 +97,7 @@ namespace ClanService.Controllers
         [HttpGet("user")]
         public async Task<IActionResult> GetMyClansAsync()
         {
-            var userId = HttpContext.Items["UserId"]?.ToString();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
                 return BadRequest(new ErrorDto { Message = "User ID not found in request headers." });
 
@@ -99,14 +105,5 @@ namespace ClanService.Controllers
             var clanReadDtos = _mapper.Map<List<ClanReadDto>>(clans);
             return Ok(clanReadDtos);
         }
-
-        [HttpGet("user/{userId}")]
-        public async Task<IActionResult> GetClansByUserIdAsync(string userId)
-        {
-            List<Clan> clans = await _clanService.GetClansByUserIdAsync(userId);
-            var clanReadDtos = _mapper.Map<List<ClanReadDto>>(clans);
-            return Ok(clanReadDtos);
-        }
-
     }
 }

@@ -99,15 +99,15 @@ namespace ClanService.Services
             }
         }
 
-        public async Task<bool> RemoveMemberAsync(Guid membershipId)
+        public async Task<bool> RemoveMemberAsync(string userId, Guid clanId)
         {
-            var existing = await _membershipRepository.GetByIdAsync(membershipId);
-            _logger.LogWarning("There is no membership {MembershipId}.", membershipId);
+            var existing = await _membershipRepository.GetMemberByUserAndClanIdAsync(userId, clanId);
+            _logger.LogWarning("There is no membership for user {UserId} and clan {ClanId}.", userId, clanId);
             if (existing == null) return false;
             try
             {
                 await _membershipRepository.DeleteAsync(existing);
-                _logger.LogInformation("Membership {MembershipId} removed successfully.", membershipId);
+                _logger.LogInformation("Membership for user {UserId} and clan {ClanId} removed successfully.", userId, clanId);
                 await _clanMessageProducer.PublishClanRoleEventAsync(new ClanRoleEventDto
                 {
                     UserId = existing.UserId,
@@ -119,7 +119,7 @@ namespace ClanService.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while removing membership {MembershipId}.", membershipId);
+                _logger.LogError(ex, "An error occurred while removing membership for user {UserId} and clan {ClanId}.", userId, clanId);
                 return false;
             }
 

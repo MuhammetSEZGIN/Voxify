@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace MessageService.Extensions;
 
+// bunu kullanmıyoruz şu anda
 public static class AuthenticationExtensions
 {
     public static IServiceCollection AddJwtAuthentication(

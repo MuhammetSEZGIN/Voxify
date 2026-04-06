@@ -1,5 +1,34 @@
 
 services:
+  auth-postgres:
+    image: postgres:15-alpine
+    container_name: auth_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${AUTH_DB_NAME}
+      POSTGRES_USER: ${AUTH_DB_USER}
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
+    ports:
+      - "5435:5432"
+    volumes:
+      - auth_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U auth_user -d auth_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  auth-redis:
+    image: redis:7-alpine
+    container_name: auth_redis
+    restart: unless-stopped
+    ports:
+      - "6381:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   # 1. PostgreSQL - Clan Service İçin
   clanservice-db:
     image: postgres:latest
@@ -203,6 +232,36 @@ services:
       LIVEKIT_URL: "http://livekit-server:7880"
     depends_on:
       - livekit-server
+  authenticationservice:
+    build:
+      context: AuthenticationService
+      dockerfile: Dockerfile
+    container_name: authenticationservice
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      SERVER_PORT: 8081
+      SPRING_DATASOURCE_URL: jdbc:postgresql://auth-postgres:5432/auth_db
+      SPRING_DATASOURCE_USERNAME: ${AUTH_DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${AUTH_DB_PASSWORD}
+
+      SPRING_DATA_REDIS_HOST: auth-redis
+      SPRING_DATA_REDIS_PORT: 6379
+
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+
+      SPRING_RABBITMQ_HOST: ${RABBITMQ_HOST}
+      SPRING_RABBITMQ_PORT: ${RABBITMQ_PORT}
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      SPRING_RABBITMQ_VIRTUAL_HOST: ${RABBITMQ_VHOST}
+    depends_on:
+      auth-postgres:
+        condition: service_healthy
+      auth-redis:
+        condition: service_healthy
 
   # 11. ApiGateway
   apigateway:
@@ -213,6 +272,7 @@ services:
     restart: always
     environment:
       ASPNETCORE_ENVIRONMENT: Docker
+      AuthService__BaseUrl: "http://authenticationservice:8081"
       JWT__Key: "${JWT_KEY}"
       JWT__Issuer: "${JWT_ISSUER}"
       JWT__Audience: "${JWT_AUDIENCE}"
@@ -258,6 +318,7 @@ volumes:
   clan_pg_data:
   identity_pg_data:
   message_mongo_data:
+  auth_postgres_data:
   certbot_www:
   certbot_conf:
     external: true

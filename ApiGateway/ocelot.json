@@ -43,6 +43,29 @@
       }
     },
     {
+      "DownstreamPathTemplate": "/api/Clan",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5074
+        }
+      ],
+      "UpstreamPathTemplate": "/clan",
+      "UpstreamHttpMethod": [ "GET", "POST" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      },
+      "RateLimitOptions": {
+        "ClientWhitelist": [],
+        "EnableRateLimiting": true,
+        "Period": "1s",
+        "PeriodTimespan": 1,
+        "Limit": 20
+      }
+    },
+    {
       "DownstreamPathTemplate": "/api/Clan/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
@@ -66,7 +89,7 @@
       }
     },
     {
-      "DownstreamPathTemplate": "/api/clanMembership/{everything}",
+      "DownstreamPathTemplate": "/api/ClanMembership/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -90,7 +113,7 @@
       "SwaggerKey": "clan"
     },
     {
-      "DownstreamPathTemplate": "/api/voiceChannel/{everything}",
+      "DownstreamPathTemplate": "/api/VoiceChannel/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -114,7 +137,7 @@
       "SwaggerKey": "clan"
     },
     {
-      "DownstreamPathTemplate": "/api/role/{everything}",
+      "DownstreamPathTemplate": "/api/Role/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -138,7 +161,7 @@
       "SwaggerKey": "clan"
     },
     {
-      "DownstreamPathTemplate": "/api/channel/{everything}",
+      "DownstreamPathTemplate": "/api/Channel/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -191,6 +214,7 @@
       "DisableRateLimitHeaders": false,
       "QuotaExceededMessage": "Too many requests. Please try again later.",
       "HttpStatusCode": 429
+      
     }
   }
 }

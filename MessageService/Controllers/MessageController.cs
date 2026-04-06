@@ -23,7 +23,9 @@ namespace MessageService.Controllers
             _messageService = messageService;
         }
 
-        [HttpGet]
+        [HttpGet("clanId/{clanId}")]
+        [Authorize(Roles = "OWNER,ADMIN,MEMBER")]
+
        public async Task<IActionResult> GetMessagesInChannelAsync(
             [FromQuery] string channelId, 
             [FromQuery] int limit = 20, 
@@ -50,7 +52,8 @@ namespace MessageService.Controllers
             return Ok(messageDtos);
         }
 
-        [HttpDelete]
+        [HttpDelete("/messageId/{messageId}/clanId/{clanId}")]
+        [Authorize(Roles = "OWNER,ADMIN,MEMBER")]
         public async Task<IActionResult> DeleteMessageAsync(ObjectId messageId)
         {
             var result = await _messageService.DeleteMessageAsync(messageId);
@@ -63,20 +66,8 @@ namespace MessageService.Controllers
             
             return Ok(new { message = "Message deleted successfully" });
         }
-        [HttpPost]
-        public async Task<IActionResult> SendMessageAsync([FromBody] Message message)
-        {
-            var result = await _messageService.CreateMessage(message);
-            
-            if (!result.IsSuccess)
-            {
-                return StatusCode(result.StatusCode, new { message = result.Message });
-            }
-            
-            return Ok(new { message = "Message sent successfully" });
-        }
-
-        [HttpPut]
+        [HttpPut("clanId/{clanId}")]
+        [Authorize(Roles = "OWNER,ADMIN,MEMBER")]
         public async Task<IActionResult> UpdateMessage([FromBody] string message, ObjectId messageId)
         {
             var result = await _messageService.UpdateMessage(messageId, message);

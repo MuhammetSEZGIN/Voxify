@@ -27,6 +27,11 @@ public class RoleService : IRoleService
             _logger.LogWarning("Invalid role name '{RoleName}' provided.", roleName);
             return false;
         }
+        if(roleName == ClanRole.OWNER.ToString())
+        {
+            _logger.LogWarning("Attempt to assign OWNER role, which is not allowed through this endpoint.");
+            return false;
+        }
 
         try
         {
