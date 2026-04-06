@@ -23,7 +23,7 @@ namespace MessageService.Controllers
             _messageService = messageService;
         }
 
-        [HttpGet("clanId/{clanId}")]
+        [HttpGet("channelId/{channelId}/clanId/{clanId}")]
         [Authorize(Roles = "OWNER,ADMIN,MEMBER")]
 
        public async Task<IActionResult> GetMessagesInChannelAsync(
@@ -52,7 +52,7 @@ namespace MessageService.Controllers
             return Ok(messageDtos);
         }
 
-        [HttpDelete("/messageId/{messageId}/clanId/{clanId}")]
+        [HttpDelete("/message/{messageId}/clanId/{clanId}")]
         [Authorize(Roles = "OWNER,ADMIN,MEMBER")]
         public async Task<IActionResult> DeleteMessageAsync(ObjectId messageId)
         {
