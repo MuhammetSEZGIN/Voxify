@@ -51,7 +51,7 @@ namespace MessageService.Controllers
             return Ok(messageDtos);
         }
 
-        [HttpDelete("/message/{messageId}/clanId/{clanId}")]
+        [HttpDelete("{messageId}/clanId/{clanId}")]
         [Authorize(Roles = "OWNER,ADMIN,MEMBER")]
         public async Task<IActionResult> DeleteMessageAsync(ObjectId messageId)
         {
@@ -65,7 +65,7 @@ namespace MessageService.Controllers
             
             return Ok(new { message = "Message deleted successfully" });
         }
-        [HttpPut("clanId/{clanId}")]
+        [HttpPut("{messageId}/clanId/{clanId}")]
         [Authorize(Roles = "OWNER,ADMIN,MEMBER")]
         public async Task<IActionResult> UpdateMessage([FromBody] string message, ObjectId messageId)
         {
