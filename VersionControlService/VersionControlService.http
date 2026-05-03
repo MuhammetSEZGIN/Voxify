@@ -1,0 +1,32 @@
+@VersionControlService_HostAddress = http://localhost:5005
+
+### Güncel versiyon - 204 No Content döner
+GET {{VersionControlService_HostAddress}}/update/windows-x86_64/1.2.3
+Accept: application/json
+
+###
+
+### Eski versiyon - 200 OK + günceleme bilgisi döner
+GET {{VersionControlService_HostAddress}}/update/windows-x86_64/1.1.0
+Accept: application/json
+
+###
+
+### Çok eski versiyon - 200 OK + günceleme bilgisi döner
+GET {{VersionControlService_HostAddress}}/update/windows-x86_64/1.0.0
+Accept: application/json
+
+###
+
+### Windows x86 için 32-bit - eski versiyon
+GET {{VersionControlService_HostAddress}}/update/windows-x86/1.1.0
+Accept: application/json
+
+###
+
+### Desteklenmeyen target - 400 Bad Request döner
+GET {{VersionControlService_HostAddress}}/update/linux-arm64/1.1.0
+Accept: application/json
+
+###
+
