@@ -6,7 +6,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 5158  
+          "Port": 5158
         }
       ],
       "UpstreamPathTemplate": "/identity/{everything}",
@@ -25,7 +25,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 5107  
+          "Port": 5107
         }
       ],
       "UpstreamPathTemplate": "/message/{everything}",
@@ -48,7 +48,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 5074  
+          "Port": 5074
         }
       ],
       "UpstreamPathTemplate": "/clan/{everything}",
@@ -71,7 +71,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 5074  
+          "Port": 5074
         }
       ],
       "UpstreamPathTemplate": "/clanMembership/{everything}",
@@ -119,7 +119,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 5074  
+          "Port": 5074
         }
       ],
       "UpstreamPathTemplate": "/role/{everything}",
@@ -143,7 +143,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 5074  
+          "Port": 5074
         }
       ],
       "UpstreamPathTemplate": "/channel/{everything}",
@@ -167,7 +167,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 5044  
+          "Port": 5044
         }
       ],
       "UpstreamPathTemplate": "/voice/{everything}",
@@ -182,6 +182,44 @@
         "Period": "1s",
         "PeriodTimespan": 1,
         "Limit": 20
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/update/{target}/{currentVersion}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5005
+        }
+      ],
+      "UpstreamPathTemplate": "/update/{target}/{currentVersion}",
+      "UpstreamHttpMethod": [ "GET" ],
+      "RateLimitOptions": {
+        "ClientWhitelist": [],
+        "EnableRateLimiting": true,
+        "Period": "1m",
+        "PeriodTimespan": 60,
+        "Limit": 10
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/download/{target}/{version}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5005
+        }
+      ],
+      "UpstreamPathTemplate": "/download/{target}/{version}",
+      "UpstreamHttpMethod": [ "GET" ],
+      "RateLimitOptions": {
+        "ClientWhitelist": [],
+        "EnableRateLimiting": true,
+        "Period": "1m",
+        "PeriodTimespan": 60,
+        "Limit": 5
       }
     }
   ],

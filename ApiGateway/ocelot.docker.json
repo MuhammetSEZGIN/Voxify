@@ -6,7 +6,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "identityservice",
-          "Port": 80  
+          "Port": 80
         }
       ],
       "UpstreamPathTemplate": "/identity/{everything}",
@@ -26,7 +26,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "messageservice",
-          "Port": 80  
+          "Port": 80
         }
       ],
       "UpstreamPathTemplate": "/message/{everything}",
@@ -50,7 +50,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "clanservice",
-          "Port": 80  
+          "Port": 80
         }
       ],
       "UpstreamPathTemplate": "/clan/{everything}",
@@ -74,7 +74,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "clanservice",
-          "Port": 80  
+          "Port": 80
         }
       ],
       "UpstreamPathTemplate": "/clanMembership/{everything}",
@@ -170,7 +170,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "voiceservice",
-          "Port": 4000  
+          "Port": 4000
         }
       ],
       "UpstreamPathTemplate": "/voice/{everything}",
@@ -187,6 +187,44 @@
         "Limit": 20
       },
       "SwaggerKey": "voice"
+    },
+    {
+      "DownstreamPathTemplate": "/update/{target}/{currentVersion}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "versioncontrolservice",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/update/{target}/{currentVersion}",
+      "UpstreamHttpMethod": [ "GET" ],
+      "RateLimitOptions": {
+        "ClientWhitelist": [],
+        "EnableRateLimiting": true,
+        "Period": "1m",
+        "PeriodTimespan": 60,
+        "Limit": 10
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/download/{target}/{version}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "versioncontrolservice",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/download/{target}/{version}",
+      "UpstreamHttpMethod": [ "GET" ],
+      "RateLimitOptions": {
+        "ClientWhitelist": [],
+        "EnableRateLimiting": true,
+        "Period": "1m",
+        "PeriodTimespan": 60,
+        "Limit": 5
+      }
     }
   ],
   "SwaggerEndPoints": [

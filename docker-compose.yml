@@ -205,7 +205,22 @@ services:
     depends_on:
       - livekit-server
 
-  # 11. ApiGateway
+  # 11. VersionControlService
+  versioncontrolservice:
+    build:
+      context: .
+      dockerfile: VersionControlService/Dockerfile
+    container_name: versioncontrolservice
+    restart: always
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Database__Path: /app/data/version_control.db
+    volumes:
+      - versioncontrol_data:/app/data
+    expose:
+      - "80"
+
+  # 12. ApiGateway
   apigateway:
     build:
       context: .
@@ -224,6 +239,7 @@ services:
       - messageservice
       - clanservice
       - voiceservice
+      - versioncontrolservice
 
   # 12. Nginx Reverse Proxy (SSL + WebSocket)
   nginx:
@@ -235,6 +251,7 @@ services:
       - "443:443"
     volumes:
       - ./nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./nginx/rate-limit.conf:/etc/nginx/conf.d/rate-limit.conf:ro
       - certbot_www:/var/www/certbot:ro
       - certbot_conf:/etc/letsencrypt:ro
     environment:
@@ -257,6 +274,7 @@ volumes:
   clan_pg_data:
   identity_pg_data:
   message_mongo_data:
+  versioncontrol_data:
   certbot_www:
   certbot_conf:
     external: true
