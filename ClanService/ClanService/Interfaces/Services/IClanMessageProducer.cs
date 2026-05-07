@@ -11,5 +11,5 @@ public interface IClanMessageProducer
     ChannelType channelType
 );
   Task PublishClanDeletedMessageAsync(string clanId);
-
+  Task PublishClanRoleEventAsync(ClanRoleEventDto clanRoleEvent);
 }

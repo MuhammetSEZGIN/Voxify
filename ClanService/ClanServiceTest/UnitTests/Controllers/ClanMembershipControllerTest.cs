@@ -12,6 +12,7 @@ using ClanService.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using System.Security.Claims;
 using Xunit;
 
 namespace ClanServiceTest.UnitTests.Controllers;
@@ -42,6 +43,12 @@ public class ClanMembershipControllerTest
         httpContext.Request.Scheme = "http";
         httpContext.Request.Host = new HostString("localhost", 5000);
         _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+    }
+
+    private void SetUser(string userId)
+    {
+        _controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(
+            new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, userId) }, "TestAuth"));
     }
 
     #region GetMembership
@@ -153,12 +160,13 @@ public class ClanMembershipControllerTest
     public async Task RemoveMember_Returns_NotFound_When_Remove_Fails()
     {
         // Arrange
-        var id = Guid.NewGuid();
-        _membershipServiceMock.Setup(s => s.RemoveMemberAsync(id))
+        var userId = "user-1";
+        var clanId = Guid.NewGuid();
+        _membershipServiceMock.Setup(s => s.RemoveMemberAsync(userId, clanId))
             .ReturnsAsync(false);
 
         // Act
-        var result = await _controller.RemoveMember(id);
+        var result = await _controller.RemoveMember(userId, clanId);
 
         // Assert
         var notFound = Assert.IsType<NotFoundObjectResult>(result);
@@ -170,12 +178,13 @@ public class ClanMembershipControllerTest
     public async Task RemoveMember_Returns_NoContent_When_Removed()
     {
         // Arrange
-        var id = Guid.NewGuid();
-        _membershipServiceMock.Setup(s => s.RemoveMemberAsync(id))
+        var userId = "user-1";
+        var clanId = Guid.NewGuid();
+        _membershipServiceMock.Setup(s => s.RemoveMemberAsync(userId, clanId))
             .ReturnsAsync(true);
 
         // Act
-        var result = await _controller.RemoveMember(id);
+        var result = await _controller.RemoveMember(userId, clanId);
 
         // Assert
         Assert.IsType<NoContentResult>(result);
@@ -191,12 +200,13 @@ public class ClanMembershipControllerTest
         // Arrange
         var userId = "user-1";
         var clanId = Guid.NewGuid();
+        SetUser(userId);
 
         _membershipServiceMock.Setup(s => s.LeaveClanAsync(userId, clanId))
             .ReturnsAsync((null!, "User is not a member of this clan."));
 
         // Act
-        var result = await _controller.LeaveClan(userId, clanId);
+        var result = await _controller.LeaveClan(clanId);
 
         // Assert
         var notFound = Assert.IsType<NotFoundObjectResult>(result);
@@ -210,6 +220,7 @@ public class ClanMembershipControllerTest
         // Arrange
         var userId = "user-1";
         var clanId = Guid.NewGuid();
+        SetUser(userId);
 
         var membership = new ClanMembership
         {
@@ -223,7 +234,7 @@ public class ClanMembershipControllerTest
             .ReturnsAsync((membership, "ok"));
 
         // Act
-        var result = await _controller.LeaveClan(userId, clanId);
+        var result = await _controller.LeaveClan(clanId);
 
         // Assert
         Assert.IsType<NoContentResult>(result);
@@ -293,7 +304,8 @@ public class ClanMembershipControllerTest
     public async Task JoinClanWithInvite_Returns_BadRequest_When_Invite_Invalid()
     {
         // Arrange
-        var input = new InviteCodeDto { InviteCode = "BAD", UserId = "user-1" };
+        SetUser("user-1");
+        var input = new InviteCodeDto { InviteCode = "BAD" };
 
         _clanServiceMock.Setup(s => s.ValidateAndUseInvitationAsync(input.InviteCode))
             .ReturnsAsync((false, "Invalid invite.", null!));
@@ -311,7 +323,9 @@ public class ClanMembershipControllerTest
     public async Task JoinClanWithInvite_Returns_BadRequest_When_AddMember_Fails()
     {
         // Arrange
-        var input = new InviteCodeDto { InviteCode = "OK", UserId = "user-1" };
+        var userId = "user-1";
+        SetUser(userId);
+        var input = new InviteCodeDto { InviteCode = "OK" };
         var invitation = new ClanInvitation
         {
             InviteId = Guid.NewGuid(),
@@ -342,7 +356,9 @@ public class ClanMembershipControllerTest
     public async Task JoinClanWithInvite_Returns_Ok_With_ReadDto_When_Joined()
     {
         // Arrange
-        var input = new InviteCodeDto { InviteCode = "OK", UserId = "user-1" };
+        var userId = "user-1";
+        SetUser(userId);
+        var input = new InviteCodeDto { InviteCode = "OK" };
         var clanId = Guid.NewGuid();
 
         var invitation = new ClanInvitation
@@ -363,13 +379,13 @@ public class ClanMembershipControllerTest
         {
             Id = Guid.NewGuid(),
             ClanId = clanId,
-            UserId = input.UserId,
+            UserId = userId,
             Role = "Member"
         };
 
         _membershipServiceMock.Setup(s => s.AddMemberAsync(It.Is<ClanMembership>(m =>
                 m.ClanId == clanId &&
-                m.UserId == input.UserId
+                m.UserId == userId
                 // Role is set in controller; we avoid strict check to prevent brittle tests
             )))
             .ReturnsAsync((createdMembership, "ok"));

@@ -12,11 +12,10 @@ public static class MassTransitManager
     {
         var rabbitMqOptions = new RabbitMQOptions();
         configuration.GetSection("RabbitMQ").Bind(rabbitMqOptions);
-        Console.WriteLine("********\n" + JsonSerializer.Serialize(rabbitMqOptions)); services.AddMassTransit(x =>
+        services.AddMassTransit(x =>
                  {
-                     // Consumer'ı ve tanımını ekleyin.
                      x.AddConsumer<ClanServiceMessageConsumer>();
-                    
+
                      x.UsingRabbitMq((context, cfg) =>
                      {
                          cfg.Host(rabbitMqOptions.HostName, (ushort)rabbitMqOptions.Port, rabbitMqOptions.VirtualHost, h =>
@@ -32,10 +31,13 @@ public static class MassTransitManager
                              }
                          });
                          cfg.UseMessageRetry(r =>
-                 {
-                                r.Interval(5, TimeSpan.FromSeconds(10));
-                            });
-                         cfg.ConfigureEndpoints(context);
+                        {
+                            r.Interval(5, TimeSpan.FromSeconds(10));
+                        });
+                        cfg.ReceiveEndpoint("Presence-Service-ClanUpdatedQueue", e =>
+                        {
+                            e.ConfigureConsumer<ClanServiceMessageConsumer>(context);
+                        });
                      });
                  });
         return services;

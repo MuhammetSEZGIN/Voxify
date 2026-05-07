@@ -28,7 +28,6 @@ namespace ClanService.Services
             var clan = await _clanRepository.GetByIdAsync(voiceChannel.ClanId);
             if (clan == null)
                 return (null, "Clan not found");
-
             await _voiceChannelRepository.AddAsync(voiceChannel);
             return (voiceChannel, "VoiceChannel created successfully");
         }

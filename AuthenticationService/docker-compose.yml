@@ -1,0 +1,23 @@
+services:
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: clan_postgres
+    environment:
+      POSTGRES_DB: clan_roles_db
+      POSTGRES_USER: my_db_user
+      POSTGRES_PASSWORD: my_db_password
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis-cache:
+    image: redis:7-alpine
+    container_name: clan_redis
+    ports:
+      - "6380:6379"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

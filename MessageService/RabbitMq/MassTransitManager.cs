@@ -1,5 +1,6 @@
 using System.Security.Authentication;
 using MassTransit;
+
 namespace MessageService.RabbitMq;
 
 public static class MassTransitManager
@@ -10,7 +11,7 @@ public static class MassTransitManager
         configuration.GetSection("RabbitMQ").Bind(rabbitMqOptions);
         services.AddMassTransit(x =>
          {
-             x.AddConsumer<IdentityConsumer, SubmitIdentityConsumeDefinition>();
+             x.AddConsumer<IdentityConsumer>();
              x.AddConsumer<ClanServiceConsumer>();
 
              x.UsingRabbitMq((context, cfg) =>
@@ -27,11 +28,22 @@ public static class MassTransitManager
                          });
                      }
                  });
+
+                // Retry mekanizması iki kuyruk için aynı olsun
                  cfg.UseMessageRetry(r =>
-             {
-                 r.Interval(3, TimeSpan.FromSeconds(10));
-             });
-                 cfg.ConfigureEndpoints(context);
+                {
+                    r.Interval(3, TimeSpan.FromSeconds(10));
+                });
+                
+                cfg.ReceiveEndpoint("Message-Service-UserUpdatedQueue", e =>
+                {
+                    e.ConfigureConsumer<IdentityConsumer>(context);
+                });
+                cfg.ReceiveEndpoint("Message-Service-ClanUpdatedQueue", e =>
+                {
+                    e.ConfigureConsumer<ClanServiceConsumer>(context);
+                });
+            
              });
          });
 

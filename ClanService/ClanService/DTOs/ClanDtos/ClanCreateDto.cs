@@ -8,8 +8,6 @@ namespace ClanService.DTOs
         [StringLength(50, MinimumLength = 3)]
         public string Name { get; set; }
         public string ImagePath { get; set; }
-        [Required]
-        public string UserId { get; set; }
         public string Description { get; set; } 
     }
 }

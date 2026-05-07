@@ -28,7 +28,6 @@ builder.Services.AddDatabaseConfiguration(builder.Configuration, logger);
 builder.Services.AddIdentityConfiguration();
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddApplicationServices();
-builder.Services.AddCorsConfiguration(builder.Configuration);
 
 
 
@@ -53,7 +52,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors("AllowTauri");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

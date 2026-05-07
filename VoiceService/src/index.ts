@@ -1,5 +1,4 @@
 import express from "express";
-import cors from "cors";
 import config from "./config";
 import { LiveKitService } from "./services/LiveKitService";
 import { createVoiceRouter } from "./routes/voiceRoutes";
@@ -9,18 +8,7 @@ import { requestLogger } from "./middlewares/requestLogger";
 const app = express();
 
 // ── Global Middleware ──
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || config.corsAllowedOrigins.includes(origin)) {
-      callback(null, true);
-      return;
-    }
-    callback(new Error("CORS origin denied"));
-  },
-  credentials: true, // Headerlarda token vb. taşınması için şart
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));app.use(requestLogger);
+app.use(requestLogger);
 
 // Webhook endpoint'i için raw body gerekiyor (imza doğrulaması için).
 // express.json() ile parse edilmeden önce raw text olarak yakalamalıyız.

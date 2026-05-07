@@ -40,9 +40,17 @@ public static class AuthenticationExtensions
                     OnMessageReceived = context =>
                     {
                         var accessToken = context.Request.Query["access_token"];
-                        var path = context.HttpContext.Request.Path;
+                        var pathValue = context.HttpContext.Request.Path.Value ?? string.Empty;
+                        
+                        // Normalize double slashes that may come from client URL concatenation
+                        while (pathValue.StartsWith("//", StringComparison.Ordinal))
+                        {
+                            pathValue = pathValue[1..];
+                        }
+                        
+                        var normalizedPath = new PathString(pathValue);
                         if (!string.IsNullOrEmpty(accessToken) &&
-                            path.StartsWithSegments("/hubs"))
+                            normalizedPath.StartsWithSegments("/hubs/presence", StringComparison.OrdinalIgnoreCase))
                         {
                             context.Token = accessToken;
                         }

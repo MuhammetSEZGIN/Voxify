@@ -13,15 +13,28 @@ public enum MessageType
 }
 public enum ClanRole
 {
-    Member,
-    Admin,
-    Owner
+    MEMBER,
+    ADMIN,
+    OWNER
+}
+public enum ClanRoleEventType
+{
+    ASSIGN_ROLE,
+    REMOVE_ROLE,
+    REMOVE_ALL_ROLES
 }
 
+public record ClanRoleEventDto
+{
+    public string? UserId { get; init; }
+    public string? ClanId { get; init; }
+    public string? Role { get; init; }
+    public string? EventType { get; init; }
+}
 public record class ChannelDeletedMessage
 {
-    public string ?ChannelId { get; set; }
-    public string ?ClanId { get; set; }
+    public string? ChannelId { get; set; }
+    public string? ClanId { get; set; }
     public ChannelType ChannelType { get; set; }
 }
 

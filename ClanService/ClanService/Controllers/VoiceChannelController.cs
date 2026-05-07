@@ -3,6 +3,7 @@ using ClanService.Interfaces;
 using ClanService.Models;
 using ClanService.DTOs;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ClanService.Controllers
 {
@@ -19,7 +20,8 @@ namespace ClanService.Controllers
             _mapper = mapper;
         }
        
-        [HttpPost]
+        [HttpPost("clanId/{clanId}")]
+        [Authorize(Roles = "OWNER,ADMIN")]
         public async Task<IActionResult> CreateVoiceChannel([FromBody] VoiceChannelCreateDto dto)
         {
             if (!ModelState.IsValid)
@@ -39,6 +41,7 @@ namespace ClanService.Controllers
         }
 
         [HttpGet("{voiceChannelId}")]
+        [Authorize(Roles = "MUHAMMET")]
         public async Task<IActionResult> GetVoiceChannelById(Guid voiceChannelId)
         {
             var channel = await _voiceChannelService.GetVoiceChannelByIdAsync(voiceChannelId);
@@ -49,7 +52,8 @@ namespace ClanService.Controllers
             return Ok(readDto);
         }
 
-        [HttpGet("clan/{clanId}")]
+        [HttpGet("clanId/{clanId}")]
+        [Authorize(Roles = "OWNER,ADMIN,MEMBER")]
         public async Task<IActionResult> GetVoiceChannelsByClanId(Guid clanId)
         {
             var channels = await _voiceChannelService.GetVoiceChannelsByClanIdAsync(clanId);
@@ -57,7 +61,8 @@ namespace ClanService.Controllers
             return Ok(readDtoList);
         }
 
-        [HttpPut]
+        [HttpPut("clanId/{clanId}")]
+        [Authorize(Roles = "OWNER,ADMIN")]
         public async Task<IActionResult> UpdateVoiceChannel([FromBody] VoiceChannelUpdateDto dto)
         {
             if (!ModelState.IsValid)
@@ -79,7 +84,8 @@ namespace ClanService.Controllers
             return Ok(readDto);
         }
 
-        [HttpDelete("{voiceChannelId}")]
+        [HttpDelete("channel/{voiceChannelId}/clanId/{clanId}")]
+        [Authorize(Roles = "OWNER,ADMIN")]
         public async Task<IActionResult> DeleteVoiceChannel(Guid voiceChannelId)
         {
             var result = await _voiceChannelService.DeleteVoiceChannelAsync(voiceChannelId);

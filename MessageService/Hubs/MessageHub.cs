@@ -9,10 +9,11 @@ using MongoDB.Bson;
 
 namespace MessageService.Hubs;
 
-[Authorize]
+[Authorize(AuthenticationSchemes = "Bearer")]
 public class MessageHub : Hub
 {
     private readonly IMessageService _messageService;
+    private readonly IUserService _userService;
     private readonly ILogger<MessageHub> _logger;
     private readonly IBackgroundTaskQueue _backgroundTaskQueue;
     private readonly IServiceScopeFactory _serviceScopeFactory;
@@ -20,12 +21,14 @@ public class MessageHub : Hub
     public MessageHub(IMessageService messageService,
         ILogger<MessageHub> logger,
         IServiceScopeFactory serviceScopeFactory,
-        IBackgroundTaskQueue backgroundTaskQueue
+        IBackgroundTaskQueue backgroundTaskQueue,
+        IUserService userService
       )
     {
         _backgroundTaskQueue = backgroundTaskQueue;
         _serviceScopeFactory = serviceScopeFactory;
         _messageService = messageService;
+        _userService = userService;
         _logger = logger;
     }
     public async Task SendMessage(string channelId, string clanId, string senderId, string userName, string message)
@@ -38,9 +41,10 @@ public class MessageHub : Hub
 
         try
         {
+            var objectId = ObjectId.GenerateNewId();
             var messageDto = new MessageDto
             {
-                Id = ObjectId.GenerateNewId(),
+                Id = objectId.ToString(),
                 ClanId = clanId,
                 UserName = userName,
                 ChannelId = channelId,
@@ -53,7 +57,7 @@ public class MessageHub : Hub
 
             var newMessage = new Message
             {
-                Id = messageDto.Id,
+                Id = objectId,
                 ClanId = clanId,
                 ChannelId = channelId,
                 SenderId = senderId,
@@ -83,31 +87,40 @@ public class MessageHub : Hub
         }
     }
 
-    public async Task UpdateMessage(ObjectId messageId, string newContent)
+    public async Task UpdateMessage(string messageId, string newContent)
     {
         if (string.IsNullOrEmpty(newContent))
         {
             _logger.LogWarning("Empty content in UpdateMessage for {MessageId}", messageId);
             return;
         }
-        await _backgroundTaskQueue.QueueBackgroundWorkItemAsync(async token =>
+        if (string.IsNullOrEmpty(messageId))
+        {
+            _logger.LogWarning("Empty message id in UpdateMessage");
+            return;
+        }
+
         {
             try
             {
                 using var scope = _serviceScopeFactory.CreateScope();
                 var messageService = scope.ServiceProvider.GetRequiredService<IMessageService>();
-                var result = await messageService.UpdateMessage(messageId, newContent);
+                var objectId = ObjectId.Parse(messageId);
+                var result = await messageService.UpdateMessage(objectId, newContent);
                 if (result == null)
                 {
                     _logger.LogWarning("Message {MessageId} not found for update", messageId);
                     return;
                 }
 
+                var userName = await _userService.GetUserNameByIdAsync(result.Data.SenderId);
+
                 var messageDto = new MessageDto
                 {
-                    Id = result.Data.Id,
+                    Id = result.Data.Id.ToString(),
                     ClanId = result.Data.ClanId,
                     ChannelId = result.Data.ChannelId,
+                    UserName = userName ?? "Unknown",
                     SenderId = result.Data.SenderId,
                     Text = result.Data.Text,
                     CreatedAt = result.Data.CreatedAt
@@ -119,7 +132,46 @@ public class MessageHub : Hub
                 _logger.LogError(e, "Error updating message {MessageId}", messageId);
                 await Clients.Caller.SendAsync("MessageUpdateFailed", messageId);
             }
-        });
+        }
+    }
+
+    public async Task DeleteMessage(string messageId, string channelId)
+    {
+        var objectId = ObjectId.Parse(messageId);
+        if (objectId == ObjectId.Empty)
+        {
+            _logger.LogWarning("Empty message id in DeleteMessage");
+            await Clients.Caller.SendAsync("MessageDeleteFailed", messageId.ToString());
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(channelId))
+        {
+            _logger.LogWarning("Empty channel id in DeleteMessage for {MessageId}", messageId);
+            await Clients.Caller.SendAsync("MessageDeleteFailed", messageId.ToString());
+            return;
+        }
+
+        try
+        {
+            using var scope = _serviceScopeFactory.CreateScope();
+            var result = await _messageService.DeleteMessageAsync(objectId);
+
+            if (!result.IsSuccess)
+            {
+                _logger.LogWarning("Message {MessageId} could not be deleted: {Reason}", messageId, result.Message);
+                await Clients.Caller.SendAsync("MessageDeleteFailed", messageId.ToString());
+                return;
+            }
+
+            await Clients.Group(channelId).SendAsync("MessageDeleted", messageId);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error deleting message {MessageId}", messageId);
+            await Clients.Caller.SendAsync("MessageDeleteFailed", messageId);
+        }
+
     }
 
     public async Task JoinChannel(Guid channelId)

@@ -7,7 +7,7 @@ using PresenceService.Interfaces;
 
 namespace PresenceService.RabbitMQ;
 
-public class ClanServiceMessageConsumer : IConsumer<ChannelDeletedMessage>
+public class ClanServiceMessageConsumer : IConsumer<ChannelDeletedMessage> , IConsumer<ClanDeletedMessage>
 {
     ILogger<ClanServiceMessageConsumer> _logger;
     IPresenceRepository _presenceRepository;

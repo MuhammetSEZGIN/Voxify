@@ -1,6 +1,9 @@
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 
+
+// we use this in apigateway. So we dont use it in IdentityService.
+// but i want it to be here for future use. 
 namespace IdentityService.Extensions
 {
     public static class AuthenticationExtensions

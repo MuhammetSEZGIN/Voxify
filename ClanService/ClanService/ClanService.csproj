@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <Folder Include="Authorization\" />
+    <Folder Include="Middlewares\" />
     <Folder Include="Migrations\" />
   </ItemGroup>
 

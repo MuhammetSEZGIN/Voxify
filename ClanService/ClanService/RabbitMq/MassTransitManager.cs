@@ -30,8 +30,8 @@ public static class MassTransitManager
                          });
                          cfg.UseMessageRetry(r =>
                  {
-                                r.Interval(5, TimeSpan.FromSeconds(10));
-                            });
+                     r.Interval(5, TimeSpan.FromSeconds(10));
+                 });
                          cfg.ConfigureEndpoints(context);
                      });
                  });

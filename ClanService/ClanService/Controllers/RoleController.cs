@@ -1,5 +1,6 @@
 using ClanService.DTOs.ClanMembershipDtos;
 using ClanService.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,10 +14,11 @@ namespace ClanService.Controllers
         public RoleController(IRoleService roleService)
         {
             _roleService = roleService;
-      
+
         }
 
-        [HttpPut("{membershipId}")]
+        [HttpPut("clanId/{clanId}")]
+        [Authorize(Roles = "OWNER,ADMIN")]
         public async Task<IActionResult> UpdateRoleAsync([FromBody] UpdateRoleDto roleDto)
         {
             if(roleDto == null || roleDto.MembershipId == Guid.Empty || string.IsNullOrEmpty(roleDto.RoleName))
@@ -24,6 +26,7 @@ namespace ClanService.Controllers
                 return BadRequest("Invalid input data.");
             }
             var result = await _roleService.UpdateRoleAsync(roleDto.MembershipId, roleDto.RoleName);
+            
             if(!result)
             {
                 return BadRequest("Failed to update role.");

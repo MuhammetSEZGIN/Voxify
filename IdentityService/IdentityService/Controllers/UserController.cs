@@ -1,5 +1,6 @@
 using IdentityService.DTOs;
 using IdentityService.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IdentityService.Controllers
@@ -26,6 +27,7 @@ namespace IdentityService.Controllers
             return BadRequest(result.Errors);
         }
 
+        [Authorize(Roles = "Muhammet")]
         [HttpDelete("delete")]
         public async Task<IActionResult> DeleteUser([FromHeader] string id)
         {

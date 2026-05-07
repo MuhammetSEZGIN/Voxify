@@ -32,7 +32,7 @@ public class GenerateToken
             issuer: issuer,
             audience: audience,
             claims: claims,
-            expires: DateTime.Now.AddHours(2),
+            expires: DateTime.Now.AddMonths(1),
             signingCredentials: creds
         );
         return tokenHandler.WriteToken(token);

@@ -41,7 +41,7 @@ public class MessageRepository : Repository<Message, ObjectId>, IMessageReposito
             )
         .Project(m => new MessageDto
         {
-            Id = m.Id,
+            Id = m.Id.ToString(),
             UserName = m.Users.UserName,
             ChannelId = m.ChannelId,
             AvatarUrl = m.Users.AvatarUrl,
@@ -78,7 +78,7 @@ public class MessageRepository : Repository<Message, ObjectId>, IMessageReposito
             @as: DetailedMessage => DetailedMessage.Users
         ).Project(m => new MessageDto
         {
-            Id = m.Id,
+            Id = m.Id.ToString(),
             UserName = m.Users.UserName,
             ChannelId = m.ChannelId,
             AvatarUrl = m.Users.AvatarUrl,
@@ -89,7 +89,7 @@ public class MessageRepository : Repository<Message, ObjectId>, IMessageReposito
 
         return await pipeline.ToListAsync();
     }
-
+    
     public async Task<bool> DeleteMessagesByMessageId(ObjectId messageId)
     {
         var messages = await _context.Messages.Find(x => x.Id == messageId).ToListAsync();
