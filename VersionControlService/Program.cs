@@ -1,11 +1,24 @@
 using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
+using VersionControlService.Data;
+using VersionControlService.Extensions;
 using VersionControlService.Endpoints;
+using VersionControlService.Repositories;
 using VersionControlService.Serialization;
 using VersionControlService.Services;
 
 var builder = WebApplication.CreateSlimBuilder(args);
+
+// Configure SQLite database — override with Database:Path env var in production
+var dbPath = builder.Configuration["Database:Path"]
+    ?? Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Database", "version_control.db"));
+Directory.CreateDirectory(Path.GetDirectoryName(dbPath)!);
+
+builder.Services.AddDbContext<VersionControlDbContext>(options =>
+    options.UseSqlite($"Data Source={dbPath}"));
+
 var configuredTargets = builder.Configuration
-    .GetSection("Platforms")
+    .GetSection("Release:Platforms")
     .GetChildren()
     .Select(section => section.Key)
     .ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -20,12 +33,23 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
 });
 
-builder.Services.AddSingleton<VersionControlService.Storage.ReleaseNotesStore>();
-builder.Services.AddSingleton<ReleaseNotesService>();
+// Register repository and service layer
+builder.Services.AddScoped<IReleaseRepository, ReleaseRepository>();
+builder.Services.AddScoped<ReleaseCatalogService>();
 
 var app = builder.Build();
 
-await app.Services.GetRequiredService<ReleaseNotesService>().EnsureSeedAsync();
+// Apply migrations and seed database
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<VersionControlDbContext>();
+    await dbContext.Database.EnsureCreatedAsync();
+
+    var catalogService = scope.ServiceProvider.GetRequiredService<ReleaseCatalogService>();
+    await catalogService.EnsureSeedAsync();
+}
+app.UseVersionControlResponseLogging();
+app.UseStaticFiles();
 
 app.MapVersionControlEndpoints(configuredTargets);
 

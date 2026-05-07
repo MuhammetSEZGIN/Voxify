@@ -15,22 +15,33 @@ public static class VersionControlEndpoints
                 HttpContext httpContext,
                 string target,
                 string currentVersion,
-                IConfiguration configuration,
-                ReleaseNotesService releaseNotesService) =>
+                ReleaseCatalogService catalogService) =>
             {
                 if (!configuredTargets.Contains(target))
                 {
-                    return Results.BadRequest(new { error = "Unknown target" });
+                    return Results.BadRequest(new ErrorResponse("Unknown target"));
                 }
 
-                var latestVersion = configuration["LatestVersion"] ?? "1.2.3";
+                var latestRelease = await catalogService.GetLatestAsync();
+                if (latestRelease == null)
+                {
+                    return Results.BadRequest(new ErrorResponse("No releases available"));
+                }
+
+                // Verify target has an artifact
+                var artifact = latestRelease.Artifacts.FirstOrDefault(a => 
+                    a.Target.Equals(target, StringComparison.OrdinalIgnoreCase));
+                if (artifact == null)
+                {
+                    return Results.BadRequest(new ErrorResponse($"No artifact for target {target}"));
+                }
 
                 if (
                     !Version.TryParse(currentVersion, out var clientVersion)
-                    || !Version.TryParse(latestVersion, out var serverVersion)
+                    || !Version.TryParse(latestRelease.Version, out var serverVersion)
                 )
                 {
-                    return Results.BadRequest(new { error = "Invalid version format" });
+                    return Results.BadRequest(new ErrorResponse("Invalid version format"));
                 }
 
                 if (clientVersion >= serverVersion)
@@ -38,28 +49,25 @@ public static class VersionControlEndpoints
                     return Results.NoContent();
                 }
 
+                // Build response with artifacts from database
                 var baseUrl = $"{httpContext.Request.Scheme}://{httpContext.Request.Host}";
                 var platforms = new Dictionary<string, PlatformInfo>(StringComparer.OrdinalIgnoreCase);
 
-                foreach (var configuredTarget in configuredTargets)
+                foreach (var releaseArtifact in latestRelease.Artifacts)
                 {
-                    var signature = configuration[$"Platforms:{configuredTarget}:Signature"] ?? string.Empty;
-                    var downloadUrl = $"{baseUrl}/download/{configuredTarget}/{latestVersion}";
-
-                    platforms[configuredTarget] = new PlatformInfo
+                    var downloadUrl = $"{baseUrl}/download/{releaseArtifact.Target}/{latestRelease.Version}";
+                    platforms[releaseArtifact.Target] = new PlatformInfo
                     {
-                        Signature = signature,
+                        Signature = releaseArtifact.Signature,
                         Url = downloadUrl
                     };
                 }
 
                 var updateInfo = new UpdateResponse
                 {
-                    Version = latestVersion,
-                    Notes = await releaseNotesService.TryGetReleaseNotesAsync(latestVersion)
-                        ?? configuration["DefaultReleaseNotes"]
-                        ?? "Yeni özellikler:\n- Bildirim desteği\n- Ses cihazı seçimi",
-                    PubDate = DateTime.Parse(configuration["ReleaseDate"] ?? "2025-05-01T00:00:00Z"),
+                    Version = latestRelease.Version,
+                    Notes = latestRelease.Notes ?? "Yeni özellikler:\n- Bildirim desteği\n- Ses cihazı seçimi",
+                    PubDate = latestRelease.PubDate,
                     Platforms = platforms
                 };
 
@@ -69,26 +77,27 @@ public static class VersionControlEndpoints
 
         app.MapGet(
             "/download/{target}/{version}",
-            (string target, string version, IConfiguration configuration) =>
+            async (string target, string version, ReleaseCatalogService catalogService) =>
             {
                 if (!configuredTargets.Contains(target))
                 {
                     return Results.NotFound();
                 }
 
-                var latestVersion = configuration["LatestVersion"] ?? "1.2.3";
-                if (!string.Equals(version, latestVersion, StringComparison.OrdinalIgnoreCase))
+                var release = await catalogService.GetByVersionAsync(version);
+                if (release == null)
                 {
                     return Results.NotFound();
                 }
 
-                var artifactUrl = configuration[$"Platforms:{target}:Url"];
-                if (string.IsNullOrWhiteSpace(artifactUrl))
+                var artifact = release.Artifacts.FirstOrDefault(a =>
+                    a.Target.Equals(target, StringComparison.OrdinalIgnoreCase));
+                if (artifact == null)
                 {
                     return Results.NotFound();
                 }
 
-                return Results.Redirect(artifactUrl);
+                return Results.Redirect(artifact.Url);
             }
         );
 

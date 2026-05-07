@@ -23,6 +23,30 @@ server {
     ssl_protocols       TLSv1.2 TLSv1.3;
     ssl_ciphers         HIGH:!aNULL:!MD5;
 
+    # ── VersionControlService — Update Check ──
+    location ~* ^/update/ {
+        limit_req zone=update_check burst=5 nodelay;
+        proxy_pass http://apigateway:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        add_header Cache-Control "no-store" always;
+    }
+
+    # ── VersionControlService — Release Download ──
+    location ~* ^/download/ {
+        limit_req zone=download_redirect burst=3 nodelay;
+        proxy_pass http://apigateway:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        # Prevent browser from executing the redirect response inline
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Content-Security-Policy "default-src 'none'" always;
+    }
+
     # ── API Gateway (REST) ──
     location / {
         proxy_pass http://apigateway:5000;
