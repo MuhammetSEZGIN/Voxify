@@ -218,6 +218,9 @@
       ],
       "UpstreamPathTemplate": "/update/{target}/{currentVersion}",
       "UpstreamHttpMethod": [ "GET" ],
+      "AddHeadersToResponse": [
+        { "Key": "Cache-Control", "Value": "no-store" }
+      ],
       "RateLimitOptions": {
         "ClientWhitelist": [],
         "EnableRateLimiting": true,
@@ -237,6 +240,10 @@
       ],
       "UpstreamPathTemplate": "/download/{target}/{version}",
       "UpstreamHttpMethod": [ "GET" ],
+      "AddHeadersToResponse": [
+        { "Key": "X-Content-Type-Options", "Value": "nosniff" },
+        { "Key": "Content-Security-Policy", "Value": "default-src 'none'" }
+      ],
       "RateLimitOptions": {
         "ClientWhitelist": [],
         "EnableRateLimiting": true,

@@ -312,7 +312,6 @@ services:
       - "443:443"
     volumes:
       - ./nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
-      - ./nginx/rate-limit.conf:/etc/nginx/conf.d/rate-limit.conf:ro
       - certbot_www:/var/www/certbot:ro
       - certbot_conf:/etc/letsencrypt:ro
     environment:
