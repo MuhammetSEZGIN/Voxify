@@ -335,11 +335,8 @@ volumes:
   clan_pg_data:
   identity_pg_data:
   message_mongo_data:
-<<<<<<< dev
   versioncontrol_data:
-=======
   auth_postgres_data:
->>>>>>> main
   certbot_www:
   certbot_conf:
     external: true
