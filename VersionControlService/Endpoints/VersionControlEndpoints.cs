@@ -50,16 +50,14 @@ public static class VersionControlEndpoints
                 }
 
                 // Build response with artifacts from database
-                var baseUrl = $"{httpContext.Request.Scheme}://{httpContext.Request.Host}";
                 var platforms = new Dictionary<string, PlatformInfo>(StringComparer.OrdinalIgnoreCase);
 
                 foreach (var releaseArtifact in latestRelease.Artifacts)
                 {
-                    var downloadUrl = $"{baseUrl}/download/{releaseArtifact.Target}/{latestRelease.Version}";
                     platforms[releaseArtifact.Target] = new PlatformInfo
                     {
                         Signature = releaseArtifact.Signature,
-                        Url = downloadUrl
+                        Url = releaseArtifact.Url
                     };
                 }
 

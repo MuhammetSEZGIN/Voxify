@@ -1,118 +1,106 @@
 # Update Flow
 
-Bu dosya, yeni bir sürüm yayınlamak istediğinde izlenecek adımları ve SQLite tarafında kullanılacak SQL sorgusunu içerir.
+Yeni sürüm yayınlamak için izlenecek adımlar.
 
-## 1. Release dosyalarını hazırla
+## 1. Tauri ile build al
 
-Yeni sürüm dosyalarını `VersionControlService/wwwroot/releases` altına koy.
+```bash
+tauri build
+```
 
-Örnek:
-- `Voxify_1.3.1_x64-setup.nsis.zip`
-- `Voxify_1.3.1_x64-setup.nsis.zip.sig`
-- `Voxify_1.3.1_x86-setup.nsis.zip`
-- `Voxify_1.3.1_x86-setup.nsis.zip.sig`
+`src-tauri/target/release/bundle/nsis/` altında şu dosyalar oluşur:
+- `Voxify_1.0.0_x64-setup.nsis.zip`
+- `Voxify_1.0.0_x64-setup.nsis.zip.sig`
 
-## 2. SQLite veritabanını güncelle (HER ZAMAN)
+## 2. GitHub Release oluştur
 
-Yeni release kaydını `Releases` tablosuna, platform dosyalarını da `ReleaseArtifacts` tablosuna ekle.
+```bash
+git tag v1.0.0
+git push origin v1.0.0
 
-**Database path:** `VersionControlService/Database/version_control.db`
+gh release create v1.0.0 \
+  Voxify_1.0.0_x64-setup.nsis.zip \
+  Voxify_1.0.0_x64-setup.nsis.zip.sig \
+  --title "v1.0.0" \
+  --notes "Sürüm notları"
+```
 
-### İlk seed (boş veritabanı) - SQL sorgusu:
+Yüklenen `.nsis.zip` dosyasının GitHub URL formatı:
+
+```text
+https://github.com/{kullanici}/{repo}/releases/download/v1.0.0/Voxify_1.0.0_x64-setup.nsis.zip
+```
+
+## 3. Signature değerini al
+
+`.sig` dosyasının içeriğini kopyala — bu tek satır base64 string, DB'ye olduğu gibi girecek:
+
+```bash
+cat Voxify_1.0.0_x64-setup.nsis.zip.sig
+# dW50cnVzdGVkIGNvbW1lbnQ6...
+```
+
+## 4. SQLite veritabanını güncelle
+
+Sunucuda container'a bağlan:
+
+```bash
+docker exec -it versioncontrolservice sh
+apt-get update && apt-get install -y sqlite3
+sqlite3 /app/data/version_control.db
+```
+
+### İlk seed (boş veritabanı)
 
 ```sql
-BEGIN TRANSACTION;
-
 INSERT INTO Releases (Id, Version, Notes, PubDate, IsLatest)
 VALUES (
-    '11111111-1111-1111-1111-111111111110',
+    lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-' || lower(hex(randomblob(2))) || '-' || lower(hex(randomblob(2))) || '-' || lower(hex(randomblob(6))),
     '1.3.0',
-    'Yeni özellikler:\n- Bildirim desteği\n- Ses cihazı seçimi',
-    '2026-05-06T00:00:00Z',
+    'Yeni özellikler: Otomatik güncelleme',
+    '2026-05-07T00:00:00Z',
     1
 );
 
-INSERT INTO ReleaseArtifacts (Id, Target, Signature, Url, ReleaseId)
-VALUES
-(
-    '22222222-2222-2222-2222-222222222220',
+INSERT INTO ReleaseArtifacts (ReleaseId, Target, Signature, Url)
+VALUES (
+    (SELECT Id FROM Releases WHERE Version = '1.3.0'),
     'windows-x86_64',
-    'base64-signature-from-sig-file',
-    'http://localhost:5005/releases/Voxify_1.3.0_x64-setup.nsis.zip',
-    '11111111-1111-1111-1111-111111111110'
-),
-(
-    '22222222-2222-2222-2222-222222222221',
-    'windows-x86',
-    'base64-signature-from-sig-file',
-    'http://localhost:5005/releases/Voxify_1.3.0_x86-setup.nsis.zip',
-    '11111111-1111-1111-1111-111111111110'
+    'dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDEzNzM2ODNFM0NBQzY1RUIKUldUclphdzhQbWh6RTdpRDZzSlFwRy83UkRjMllXcys0N3RVTk5sUE1ZUkN0UDdMdU9ZMzFlRTIK',
+    'https://github.com/MuhammetSEZGIN/voxify-react/releases/download/v1.3.0/Voxify_1.3.0_x64-setup.nsis.zip'
 );
-
-COMMIT;
 ```
 
-### Sonraki sürüm güncellemesi - SQL sorgusu:
+### Sonraki sürüm güncellemesi
 
 ```sql
-BEGIN TRANSACTION;
-
 -- Eski sürümün latest flagini kaldır
-UPDATE Releases
-SET IsLatest = 0
-WHERE IsLatest = 1;
+UPDATE Releases SET IsLatest = 0 WHERE IsLatest = 1;
 
 -- Yeni sürümü ekle
 INSERT INTO Releases (Id, Version, Notes, PubDate, IsLatest)
 VALUES (
-    '11111111-1111-1111-1111-111111111111',
+    lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-' || lower(hex(randomblob(2))) || '-' || lower(hex(randomblob(2))) || '-' || lower(hex(randomblob(6))),
     '1.3.1',
-    'Yeni özellikler ve hata düzeltmeleri',
-    '2026-05-06T00:00:00Z',
+    'Deneme amaçlı oluşturuldu',
+    '2026-05-07T00:00:00Z',
     1
 );
 
--- Platform artifactlarını ekle
-INSERT INTO ReleaseArtifacts (Id, Target, Signature, Url, ReleaseId)
-VALUES
-(
-    '22222222-2222-2222-2222-222222222222',
+-- Artifact ekle
+INSERT INTO ReleaseArtifacts (ReleaseId, Target, Signature, Url)
+VALUES (
+    (SELECT Id FROM Releases WHERE Version = '1.3.1'),
     'windows-x86_64',
-    'base64-signature-from-sig-file',
-    'http://localhost:5005/releases/Voxify_1.3.1_x64-setup.nsis.zip',
-    '11111111-1111-1111-1111-111111111111'
-),
-(
-    '22222222-2222-2222-2222-222222222223',
-    'windows-x86',
-    'base64-signature-from-sig-file',
-    'http://localhost:5005/releases/Voxify_1.3.1_x86-setup.nsis.zip',
-    '11111111-1111-1111-1111-111111111111'
+    'dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDEzNzM2ODNFM0NBQzY1RUIKUldUclphdzhQbWh6RTdpRDZzSlFwRy83UkRjMllXcys0N3RVTk5sUE1ZUkN0UDdMdU9ZMzFlRTIK',
+    'https://github.com/MuhammetSEZGIN/voxify-react/releases/download/v1.3.1/Voxify_1.3.1_x64-setup.nsis.zip'
 );
-
-COMMIT;
 ```
 
-## 3. Uygulamayı çalıştır
+### Kontrol
 
-```bash
-cd VersionControlService
-dotnet build
-dotnet run
+```sql
+SELECT r.Version, r.IsLatest, a.Target, a.Url
+FROM Releases r
+JOIN ReleaseArtifacts a ON a.ReleaseId = r.Id;
 ```
-
-Uygulama açılınca:
-- SQLite dosyası otomatik oluşturulur
-- DB boşsa: "Database is empty. Manual seed required..." mesajı
-- DB doluysa: Veriler DB'den okunur
-
-## 4. Admin panel (gelecek)
-
-Sonraki aşamada admin panel doğrudan DB'ye INSERT/UPDATE yapacak. Aynı SQL mantığı uygulanacak.
-
-## Notlar
-
-- ✅ `appsettings.json` artık release bilgisi içermiyor
-- ✅ Her update'de sadece DB güncellemen gerekiyor
-- ✅ Release dosyaları (.zip, .sig) diskten servis ediliyor
-- ✅ Signature base64 text olarak DB'de saklanıyor
